@@ -46,6 +46,13 @@
 - UI: Timeline (blocos proporcionais aos tempos, barras de compasso, arrastar para reordenar, duração ±, compasso a partir do acorde, remover; clique ouve, duplo clique coloca no braço), BeatIndicator (contagem real com grupos, luz do tempo, barra de progresso, "Próximo: Am (vi)"), pontos fantasmas piscando com o próximo acorde no braço, painel Tempo e metrônomo (fórmula livre, agrupamento editável), painel Estrutura (seções, tom/BPM/compasso próprios, anacruse, forma arrastável, duplicar), espaço = play/pause
 - Testes de aceite: 120 BPM 4/4 troca a cada 2 s com aviso no tempo 4; 5/4 a 100 = 3 s; 7/8 2+2+3 → acentos 1,3,5; 3+2+2 → 1,4,6; 4/4 seguido de 7/8; acorde de 2 tempos; refrão abre em I/IV
 
+## Fase 6 — Modos de tocar ✅
+- `audio/patterns.ts` (puro): biblioteca de batidas por grade de 8ªs/16ªs (B B C C B C, rock, reggae, funk, samba, valsa, 6/8, 7/8, 5/4, 12/8…) + padrões gerados da fórmula (acentos do agrupamento, um por tempo, alternada) — incompatíveis ficam ocultos; dedilhado P-I-M-A (travis, bossa, arpejos, personalizado por texto); palhetada alternada/econômica/tremolo; sweep ida e volta abafando a anterior; harmônicos artificiais em arpejo; palm mute; humanização ±10% e microvariação
+- Progressão toca no modo escolhido, sincronizada ao transporte (`audio/perform.ts`); "Tocar acorde" toca 1 compasso do modo
+- No braço: harmônico natural (só 12, 7, 5, 4, 9 e 3≈3,2; demais casas desabilitadas), artificial (+12 / pinch +19/+24 na guitarra), hammer-on/pull-off/slide entre casas da mesma corda, tremolo
+- Seletor de modo no topo + painel Modos de tocar
+- Testes: padrões de 7/8 só com 7 colcheias; harmônicos (E2 casa 12 = E3, casa 5 = E4; G casa 3 artificial = Bb4); casa 6 desabilitada
+
 ## Próximas fases
 - [ ] Fase 3 — Som na afinação certa (Tone.js + smplr)
 - [ ] Fase 4 — Motor de sugestões e voicings

@@ -2,15 +2,17 @@ import { INSTRUMENTS } from '../instrument'
 import { useInstrument } from '../store/instrument'
 import { useSong } from '../store/song'
 import { audio } from '../audio'
-import { fretMidi } from '../theory'
+import { isHarmonicFretEnabled } from '../audio/patterns'
+import { usePlayMode } from '../store/playMode'
+import { emitNotePlayed } from './noteEvents'
+import { playChordNow, playFret } from './playActions'
 import { Fretboard } from './Fretboard'
 import { PianoOctave } from './PianoOctave'
 import { useDetection, useFormat } from './hooks'
 
 export function InstrumentView() {
   const instrumentId = useInstrument((s) => s.instrumentId)
-  const tuning = useInstrument((s) => s.tuning)
-  const capo = useInstrument((s) => s.capo)
+  const mode = usePlayMode((s) => s.mode)
   const frets = useInstrument((s) => s.frets)
   const clear = useInstrument((s) => s.clearSelection)
   const addChord = useSong((s) => s.addChord)
@@ -18,20 +20,24 @@ export function InstrumentView() {
   const fmt = useFormat()
   const def = INSTRUMENTS[instrumentId]
 
-  const playChord = () => audio.playChord(notes.map((n) => n.midi), notes.map((n) => n.stringIndex))
+  const playChord = () => playChordNow(notes.map((n) => n.midi), notes.map((n) => n.stringIndex))
 
   return (
     <div className="flex flex-col gap-2" data-testid="instrument">
       {def.kind === 'piano' ? (
-        <PianoOctave onPlay={(m) => audio.playMidi(m)} />
+        <PianoOctave
+          onPlay={(m) => {
+            audio.playMidi(m)
+            emitNotePlayed({ midi: m, stringIndex: null, fret: null })
+          }}
+        />
       ) : (
         <Fretboard
           onPlay={(si, fret) => {
-            const open = tuning[si]
-            if (!open) return
-            const m = fretMidi(open, fret, capo)
-            if (m !== null) audio.playStringNote(si, m)
+            const prev = frets[si]
+            playFret(si, fret, typeof prev === 'number' ? prev : null)
           }}
+          isFretDisabled={mode === 'harmonicNatural' ? (f) => !isHarmonicFretEnabled(f) : undefined}
         />
       )}
       <div className="flex flex-wrap items-center gap-2 text-sm">

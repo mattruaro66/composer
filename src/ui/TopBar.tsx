@@ -6,6 +6,7 @@ import { useUi } from '../store/ui'
 import { KeySelector } from './KeySelector'
 import { TempoControls } from './TempoControls'
 import { AudioIndicator } from './AudioIndicator'
+import { PlayModeSelect } from './PlayModeSelect'
 
 export function TopBar() {
   const instrumentId = useInstrument((s) => s.instrumentId)
@@ -42,6 +43,7 @@ export function TopBar() {
       )}
       <KeySelector />
       <TempoControls />
+      {def.kind === 'strings' && <PlayModeSelect />}
       <div className="ml-auto flex items-center gap-1">
         <AudioIndicator />
         <select

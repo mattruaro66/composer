@@ -12,4 +12,5 @@ export const MODULE_COMPONENTS: Partial<Record<ModuleId, LazyExoticComponent<Com
   timeline: lazy(() => import('./panels/TimelinePanel')),
   transport: lazy(() => import('./panels/TransportPanel')),
   structure: lazy(() => import('./panels/StructurePanel')),
+  playModes: lazy(() => import('./panels/PlayModesPanel')),
 }
