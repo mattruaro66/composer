@@ -7,4 +7,6 @@ import type { ModuleId } from './meta'
  */
 export const MODULE_COMPONENTS: Partial<Record<ModuleId, LazyExoticComponent<ComponentType>>> = {
   analysis: lazy(() => import('./panels/AnalysisPanel')),
+  suggestions: lazy(() => import('./panels/SuggestionsPanel')),
+  voicings: lazy(() => import('./panels/VoicingsPanel')),
 }

@@ -33,6 +33,13 @@
 - Uma voz por corda; detune pela referência A4 (415–466 Hz); volume master, bus de metrônomo separado, reverb leve opcional; lookAhead 20 ms
 - Testes: casa 5 da corda A = 146,8 Hz; Drop D desce a 6ª corda 1 tom; A4 ajustável
 
+## Fase 4 — Motor de sugestões e voicings ✅
+- `theory/voicings.ts`: gerador de voicings tocáveis (busca por posição, span ≤ 4 casas, limite de dedos, cordas mudas só nas bordas + 1 interna), classificação aberto/CAGED/tríade/drop 2/drop 3, voicings de piano (fechada, inversões, aberta), distância de condução de vozes
+- `theory/chordScale.ts`: chord-scale por função (modos do tom, mixolídio, frígio dominante, lídio b7…), tensões disponíveis e notas a evitar
+- `src/suggest/` (puro, sem React/Tone): completar acorde, próximo acorde (matriz funcional maior e menor, progressões conhecidas, condução de vozes, viés por seção e estilo, 3 seguros + 2 ousados com explicação), próxima nota de melodia; pesos expostos em `suggest/weights.ts`
+- UI: painel de Sugestões (clique toca e mostra o voicing em pontos fantasmas; duplo clique adiciona à progressão; toggles por recurso), painel de Voicings (← →, filtros por região e tipo, diagrama, usar no braço, tensões/evitar)
+- Testes: G em C → C e Am no top 3; Dm→G → C em 1º; C+E → C, Am, C7M; voicings de G em várias posições; refrão abre em I/IV; cadência andaluza
+
 ## Próximas fases
 - [ ] Fase 3 — Som na afinação certa (Tone.js + smplr)
 - [ ] Fase 4 — Motor de sugestões e voicings
