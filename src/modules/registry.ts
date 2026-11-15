@@ -9,4 +9,7 @@ export const MODULE_COMPONENTS: Partial<Record<ModuleId, LazyExoticComponent<Com
   analysis: lazy(() => import('./panels/AnalysisPanel')),
   suggestions: lazy(() => import('./panels/SuggestionsPanel')),
   voicings: lazy(() => import('./panels/VoicingsPanel')),
+  timeline: lazy(() => import('./panels/TimelinePanel')),
+  transport: lazy(() => import('./panels/TransportPanel')),
+  structure: lazy(() => import('./panels/StructurePanel')),
 }

@@ -63,3 +63,18 @@ export const audio = {
     withEngine((e) => e.strum(midi.map((m, i) => ({ midi: m, stringIndex: strings?.[i] ?? null })), { direction: 'down', ...opts })),
   stopAll: () => withEngine((e) => e.stopAll()),
 }
+
+/** Transport controls (lazy: Tone.js loads on first use). */
+export const transport = {
+  play: () => {
+    unlockAudio()
+    return import('./transport').then((m) => m.play())
+  },
+  pause: () => import('./transport').then((m) => m.pause()),
+  stop: () => import('./transport').then((m) => m.stop()),
+  toggle: async () => {
+    const { useTransport } = await import('../store/transport')
+    const status = useTransport.getState().status
+    return status === 'playing' ? transport.pause() : transport.play()
+  },
+}

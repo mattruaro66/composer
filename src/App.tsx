@@ -1,4 +1,5 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
+import { transport } from './audio'
 import { Dock, useHasDock } from './modules/Docks'
 import { useLayout } from './store/layout'
 import { useUi } from './store/ui'
@@ -38,6 +39,18 @@ export default function App() {
   const tuningOpen = useUi((s) => s.tuningOpen)
   const hasLeft = useHasDock('left')
   const hasRight = useHasDock('right')
+
+  // Keyboard: space = play/pause (except while typing).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement
+      if (e.code !== 'Space' || /INPUT|SELECT|TEXTAREA|BUTTON/.test(t.tagName) || t.isContentEditable) return
+      e.preventDefault()
+      void transport.toggle()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   return (
     <div className="flex min-h-screen flex-col">

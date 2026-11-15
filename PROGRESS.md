@@ -40,6 +40,12 @@
 - UI: painel de Sugestões (clique toca e mostra o voicing em pontos fantasmas; duplo clique adiciona à progressão; toggles por recurso), painel de Voicings (← →, filtros por região e tipo, diagrama, usar no braço, tensões/evitar)
 - Testes: G em C → C e Am no top 3; Dm→G → C em 1º; C+E → C, Am, C7M; voicings de G em várias posições; refrão abre em I/IV; cadência andaluza
 
+## Fase 5 — Progressão, tempo e sinalização ✅
+- `song/schedule.ts` (puro): agenda completa da música — pulsos com acento por agrupamento, compassos mistos (fórmula por música, seção ou a partir de um acorde), anacruse, BPM e compasso por seção, unidade de BPM (♩, ♪, ♩.), contagem de entrada, horário do aviso de troca (último tempo antes da troca)
+- `audio/transport.ts`: tudo agendado pelo Tone.Transport (sem setTimeout para áudio), loop sem repetir a contagem, metrônomo acentuado (forte/médio/fraco), reagendamento ao editar durante a reprodução; UI sincronizada via Tone.Draw
+- UI: Timeline (blocos proporcionais aos tempos, barras de compasso, arrastar para reordenar, duração ±, compasso a partir do acorde, remover; clique ouve, duplo clique coloca no braço), BeatIndicator (contagem real com grupos, luz do tempo, barra de progresso, "Próximo: Am (vi)"), pontos fantasmas piscando com o próximo acorde no braço, painel Tempo e metrônomo (fórmula livre, agrupamento editável), painel Estrutura (seções, tom/BPM/compasso próprios, anacruse, forma arrastável, duplicar), espaço = play/pause
+- Testes de aceite: 120 BPM 4/4 troca a cada 2 s com aviso no tempo 4; 5/4 a 100 = 3 s; 7/8 2+2+3 → acentos 1,3,5; 3+2+2 → 1,4,6; 4/4 seguido de 7/8; acorde de 2 tempos; refrão abre em I/IV
+
 ## Próximas fases
 - [ ] Fase 3 — Som na afinação certa (Tone.js + smplr)
 - [ ] Fase 4 — Motor de sugestões e voicings

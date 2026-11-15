@@ -32,6 +32,7 @@ export function Fretboard({ onPlay, isFretDisabled }: FretboardProps) {
   const fretLabel = useSettings((s) => s.fretLabel)
   const showScale = useSettings((s) => s.showScale)
   const ghostIntensity = useSettings((s) => s.ghostIntensity)
+  const warnIntensity = useSettings((s) => s.changeWarningIntensity)
   const ghosts = useUi((s) => s.ghosts)
   const key = useCurrentKey()
   const fmt = useFormat()
@@ -170,7 +171,7 @@ export function Fretboard({ onPlay, isFretDisabled }: FretboardProps) {
                   <circle cx={mirror(cellX(physical))} cy={y} r={isTonic ? 7 : 5} fill={isTonic ? '#f59e0b' : '#a3a3a3'} opacity={isTonic ? 0.55 : 0.28} />
                 )}
                 {ghost && !selected && (
-                  <g opacity={ghostIntensity}>
+                  <g opacity={ghost.kind === 'next' ? warnIntensity : ghostIntensity}>
                     <circle cx={mirror(cellX(physical))} cy={y} r={11} fill="none" stroke={ghost.kind === 'next' ? '#38bdf8' : '#a78bfa'} strokeWidth={2} strokeDasharray="3 2" className={ghost.kind === 'next' ? 'animate-pulse' : ''} />
                     {ghost.label && (
                       <text x={mirror(cellX(physical))} y={y + 3.5} fontSize={9} textAnchor="middle" fill="#ddd">
