@@ -24,7 +24,7 @@ export function TopBar() {
   const preset = matchTuningPreset(instrumentId, tuning)
 
   return (
-    <header className="flex flex-wrap items-center gap-2 border-b border-white/5 bg-neutral-950/80 px-3 py-2 backdrop-blur" data-testid="topbar">
+    <header className="flex flex-wrap items-center gap-1.5 border-b border-white/5 bg-neutral-950/80 px-3 py-2 backdrop-blur" data-testid="topbar">
       <h1 className="mr-2 text-lg font-bold tracking-tight">
         <span className="text-amber-400">♪</span> Composer
       </h1>
@@ -54,16 +54,16 @@ export function TopBar() {
           data-testid="workspace-select"
         >
           <option value="" disabled>
-            Área: personalizada
+            Personalizada
           </option>
           {[...BUILTIN_PRESETS, ...customPresets].map((p) => (
             <option key={p.id} value={p.id}>
-              Área: {p.name}
+              {p.name}
             </option>
           ))}
         </select>
         <button className={`btn ${focus ? 'btn-active' : ''}`} onClick={() => setFocus(!focus)} title="Modo foco: só o instrumento" data-testid="focus-toggle">
-          ◎ Foco
+          ◎<span className="hidden xl:inline"> Foco</span>
         </button>
         <button className="btn" onClick={() => setUi({ settingsOpen: true })} aria-label="Configurações" data-testid="settings-open">
           ⚙

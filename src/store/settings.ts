@@ -24,6 +24,8 @@ export interface SettingsState {
   masterVolume: number
   metronomeVolume: number
   reverb: boolean
+  /** On tuning change: keep sounding pitches (re-finger) or keep frets (pitch changes). */
+  notationRetune: 'keepPitch' | 'keepFrets'
   /** Per-module feature toggles, e.g. moduleOptions.suggestions.bold = false */
   moduleOptions: Record<string, Record<string, boolean>>
   set: (patch: Partial<Omit<SettingsState, 'set' | 'setOption'>>) => void
@@ -56,6 +58,7 @@ export const useSettings = create<SettingsState>()(
       masterVolume: 0.8,
       metronomeVolume: 0.6,
       reverb: false,
+      notationRetune: 'keepPitch',
       moduleOptions: DEFAULT_MODULE_OPTIONS,
       set: (patch) => set(patch),
       setOption: (moduleId, option, value) =>

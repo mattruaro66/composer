@@ -13,4 +13,5 @@ export const MODULE_COMPONENTS: Partial<Record<ModuleId, LazyExoticComponent<Com
   transport: lazy(() => import('./panels/TransportPanel')),
   structure: lazy(() => import('./panels/StructurePanel')),
   playModes: lazy(() => import('./panels/PlayModesPanel')),
+  notation: lazy(() => import('./panels/NotationPanel')),
 }

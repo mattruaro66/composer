@@ -13,7 +13,7 @@ export function KeySelector() {
   const tonicValue = TONICS.find((t) => fmtChroma(t) === fmtChroma(key.tonic)) ?? key.tonic
   return (
     <div className="flex items-center gap-1" data-testid="key-selector">
-      <span className="hidden text-xs text-neutral-400 sm:inline">Tom</span>
+      <span className="hidden text-xs text-neutral-400 2xl:inline">Tom</span>
       <select className="field" aria-label="Tônica" value={tonicValue} onChange={(e) => setKey({ ...key, tonic: e.target.value })}>
         {TONICS.map((t) => (
           <option key={t} value={t}>

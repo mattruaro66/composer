@@ -46,7 +46,7 @@ async function scheduleAll(): Promise<void> {
       T.schedule((time) => {
         if (p.countIn || optionOn('metronome')) engine.click({ time, accent: p.accent })
         draw.schedule(() => {
-          useTransport.getState().set({ measure: p.measure, pulse: p.pulse, meter: p.meter, pulseDuration: p.duration, countIn: p.countIn })
+          useTransport.getState().set({ measure: p.measure, localMeasure: p.localMeasure, sectionId: p.sectionId, pulse: p.pulse, meter: p.meter, pulseDuration: p.duration, countIn: p.countIn })
         }, time)
       }, p.time),
     )
@@ -84,6 +84,25 @@ async function scheduleAll(): Promise<void> {
         }, c.warnAt),
       )
     }
+  }
+  // Written melody / notation notes.
+  for (const n of sch.notes) {
+    const note = n.note
+    if (note.midi === null) continue
+    const midi = note.midi
+    scheduled.push(
+      T.schedule((time) => {
+        engine.playNote(midi, {
+          time,
+          duration: n.duration,
+          stringIndex: note.string !== undefined ? 100 + note.string : null,
+          legato: note.technique === 'hammer' || note.technique === 'pull' || note.technique === 'slide',
+          harmonic: note.technique === 'harmonic' || note.technique === 'artificialHarmonic',
+          palmMute: note.technique === 'palmMute',
+          velocity: 0.85,
+        })
+      }, n.time),
+    )
   }
   // Loop the music (count-in plays only once).
   T.loop = loop && sch.total > 0

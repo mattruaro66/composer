@@ -12,7 +12,7 @@ export function TempoControls() {
   return (
     <div className="flex items-center gap-1" data-testid="tempo-controls">
       <label className="flex items-center gap-1">
-        <span className="hidden text-xs text-neutral-400 sm:inline">BPM</span>
+        <span className="text-xs text-neutral-400">BPM</span>
         <input
           className="field w-16"
           type="number"

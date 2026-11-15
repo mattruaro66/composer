@@ -1,4 +1,4 @@
-import { sectionBpm, sectionMeter, type BpmUnit, type ChordItem, type Section, type Song, type TimeSig } from './model'
+import { sectionBpm, sectionMeter, ticksPerPulse, type BpmUnit, type ChordItem, type NoteEvent, type Section, type Song, type TimeSig } from './model'
 
 export type Accent = 'strong' | 'medium' | 'weak'
 
@@ -7,6 +7,8 @@ export interface PulseEvent {
   duration: number
   /** Global measure index (count-in measures are negative). */
   measure: number
+  /** Measure index inside its section. */
+  localMeasure: number
   /** Pulse index inside the measure (0-based). */
   pulse: number
   accent: Accent
@@ -44,8 +46,16 @@ export interface MeasureEvent {
   firstPulse: number
 }
 
+export interface TimedNote {
+  time: number
+  duration: number
+  note: NoteEvent
+  sectionId: string
+}
+
 export interface Schedule {
   pulses: PulseEvent[]
+  notes: TimedNote[]
   chords: ChordEvent[]
   measures: MeasureEvent[]
   countInDuration: number
@@ -111,7 +121,11 @@ export function layoutSection(song: Song, section: Section): SectionLayout {
     measures.push({ meter, pulses: pickup, firstPulse: meter.num - pickup })
     cursor = pickup
   }
-  while (cursor < totalPulses || measures.length === 0) {
+  // Written notes may extend the section beyond its chords.
+  const notesEnd = section.notes.reduce((mx, n) => Math.max(mx, n.start + n.duration), 0)
+  const notePulses = Math.ceil(notesEnd / ticksPerPulse(meter.den))
+  const target = Math.max(totalPulses, notePulses)
+  while (cursor < target || measures.length === 0) {
     // Apply meter changes from chords that start at (or before) this measure start.
     while (ci < section.chords.length && (chordStarts[ci] ?? 0) <= cursor) {
       const m = section.chords[ci]!.meter
@@ -126,10 +140,10 @@ export function layoutSection(song: Song, section: Section): SectionLayout {
       pendingMeter = null
     }
     const remaining = totalPulses - cursor
-    const pulses = remaining > 0 ? Math.min(meter.num, remaining) : meter.num
-    measures.push({ meter, pulses: remaining > 0 ? pulses : meter.num, firstPulse: 0 })
+    const pulses = remaining > 0 && cursor + meter.num > totalPulses && notePulses <= totalPulses ? remaining : meter.num
+    measures.push({ meter, pulses, firstPulse: 0 })
     cursor += meter.num
-    if (remaining <= 0) break
+    if (remaining <= 0 && cursor >= target) break
   }
   return { measures, chordStarts, totalPulses }
 }
@@ -145,6 +159,7 @@ export function buildSchedule(song: Song, opts: ScheduleOptions = {}): Schedule 
   const order = opts.order ?? song.form
   const sections = order.map((id) => song.sections.find((s) => s.id === id)).filter((s): s is Section => !!s)
   const pulses: PulseEvent[] = []
+  const notes: TimedNote[] = []
   const chords: ChordEvent[] = []
   const measures: MeasureEvent[] = []
 
@@ -156,7 +171,7 @@ export function buildSchedule(song: Song, opts: ScheduleOptions = {}): Schedule 
     const meter = layoutSection(song, first).measures[0]?.meter ?? sectionMeter(song, first)
     const ps = pulseSeconds(sectionBpm(song, first), song.bpmUnit, meter.den)
     for (let p = 0; p < meter.num; p++) {
-      pulses.push({ time: t, duration: ps, measure: -1, pulse: p, accent: accentOf(p, meter), meter, sectionId: null, chordIndex: null, countIn: true })
+      pulses.push({ time: t, duration: ps, measure: -1, localMeasure: -1, pulse: p, accent: accentOf(p, meter), meter, sectionId: null, chordIndex: null, countIn: true })
       t += ps
     }
     countInDuration = t
@@ -167,20 +182,36 @@ export function buildSchedule(song: Song, opts: ScheduleOptions = {}): Schedule 
     const bpm = sectionBpm(song, section)
     const layout = layoutSection(song, section)
     let sectionPulse = 0
+    let sectionTick = 0
     const chordTimes: number[] = []
+    const tickMap: { tick: number; time: number; secPerTick: number }[] = []
+    let localMeasure = 0
     for (const m of layout.measures) {
       const ps = pulseSeconds(bpm, song.bpmUnit, m.meter.den)
       const mStart = t
+      tickMap.push({ tick: sectionTick, time: t, secPerTick: ps / ticksPerPulse(m.meter.den) })
+      sectionTick += m.pulses * ticksPerPulse(m.meter.den)
       for (let k = 0; k < m.pulses; k++) {
         const p = m.firstPulse + k
         const ci = chordIndexAt(layout.chordStarts, sectionPulse, section.chords.length, layout.totalPulses)
         if (ci !== null && layout.chordStarts[ci] === sectionPulse && chordTimes[ci] === undefined) chordTimes[ci] = t
-        pulses.push({ time: t, duration: ps, measure: measureIndex, pulse: p, accent: accentOf(p, m.meter), meter: m.meter, sectionId: section.id, chordIndex: ci, countIn: false })
+        pulses.push({ time: t, duration: ps, measure: measureIndex, localMeasure, pulse: p, accent: accentOf(p, m.meter), meter: m.meter, sectionId: section.id, chordIndex: ci, countIn: false })
         t += ps
         sectionPulse++
       }
       measures.push({ index: measureIndex, time: mStart, duration: t - mStart, meter: m.meter, bpm, sectionId: section.id, pulses: m.pulses, firstPulse: m.firstPulse })
       measureIndex++
+      localMeasure++
+    }
+    const tickToTime = (tick: number) => {
+      let seg = tickMap[0]!
+      for (const x of tickMap) if (x.tick <= tick) seg = x
+      return seg.time + (tick - seg.tick) * seg.secPerTick
+    }
+    for (const n of section.notes) {
+      if (n.midi === null) continue
+      const start = tickToTime(n.start)
+      notes.push({ time: start, duration: tickToTime(n.start + n.duration) - start, note: n, sectionId: section.id })
     }
     section.chords.forEach((c, i) => {
       const start = chordTimes[i] ?? t
@@ -202,7 +233,8 @@ export function buildSchedule(song: Song, opts: ScheduleOptions = {}): Schedule 
       c.warnAt = before.length ? before[before.length - 1]!.time : null
     }
   })
-  return { pulses, chords, measures, countInDuration, total: end - countInDuration }
+  notes.sort((a, b) => a.time - b.time)
+  return { pulses, notes, chords, measures, countInDuration, total: end - countInDuration }
 }
 
 function chordIndexAt(starts: number[], pulse: number, count: number, total: number): number | null {

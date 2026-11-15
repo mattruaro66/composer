@@ -13,6 +13,8 @@ interface TransportState {
   scope: 'section' | 'song'
   loop: boolean
   measure: number
+  localMeasure: number
+  sectionId: string | null
   pulse: number
   meter: TimeSig | null
   pulseDuration: number
@@ -27,6 +29,8 @@ export const useTransport = create<TransportState>()((set) => ({
   scope: 'section',
   loop: true,
   measure: 0,
+  localMeasure: 0,
+  sectionId: null,
   pulse: -1,
   meter: null,
   pulseDuration: 0.5,

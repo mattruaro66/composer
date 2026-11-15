@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { transport } from './audio'
+import { useNotationSync } from './notation/sync'
 import { Dock, useHasDock } from './modules/Docks'
 import { useLayout } from './store/layout'
 import { useUi } from './store/ui'
@@ -39,6 +40,7 @@ export default function App() {
   const tuningOpen = useUi((s) => s.tuningOpen)
   const hasLeft = useHasDock('left')
   const hasRight = useHasDock('right')
+  useNotationSync()
 
   // Keyboard: space = play/pause (except while typing).
   useEffect(() => {

@@ -85,3 +85,17 @@ describe('schedule', () => {
     expect(sch.chords[1]!.pulse).toBe(0)
   })
 })
+
+describe('written notes', () => {
+  it('notes are timed from ticks and extend the section', () => {
+    const s = song({ bpm: 120, meter: [4, 4], chords: ['C'] })
+    s.sections[0]!.notes = [
+      { id: 'a', midi: 60, start: 0, duration: 480 },
+      { id: 'b', midi: 62, start: 480 * 6, duration: 480 },
+    ]
+    const sch = buildSchedule(s)
+    expect(sch.notes.map((n) => n.time)).toEqual([0, 3])
+    expect(sch.measures).toHaveLength(2)
+    expect(sch.total).toBeCloseTo(4)
+  })
+})

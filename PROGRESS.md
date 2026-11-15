@@ -53,6 +53,14 @@
 - Seletor de modo no topo + painel Modos de tocar
 - Testes: padrões de 7/8 só com 7 colcheias; harmônicos (E2 casa 12 = E3, casa 5 = E4; G casa 3 artificial = Bb4); casa 6 desabilitada
 
+## Fase 7 — Partitura e tablatura sincronizadas ✅
+- Fonte única: `section.notes` (eventos {altura, início, duração, corda?, casa?, técnica?, ligadura, quiáltera}); instrumento, pauta e tab editam o mesmo modelo
+- `notation/` (puro): grafia pelo tom e oitava correta (F# em G, Gb em Db, Cb/B#), armadura (inclusive modos), algoritmo de digitação (menor deslocamento da mão, posição do acorde), troca de corda (Alt+↑↓), "manter alturas" × "manter digitação" ao trocar afinação/capo, detecção de notas impossíveis, divisão em compassos com pausas e ligaduras através da barra, barras de ligação pelo agrupamento (7/8 2+2+3)
+- `notation/render.ts` com VexFlow (carregado só com o módulo): clave de sol 8vb + tab de 6/7 linhas, clave de fá 8vb + tab 4/5 (baixo), pauta dupla no piano; cifras acima, graus abaixo no modo didático; técnicas (H, P, sl., Harm., A.H., P.M.); quiálteras; notas impossíveis em vermelho; mudança de fórmula de compasso
+- Edição: clicar na tab e digitar a casa (0–24); clicar na pauta e digitar A–G, ↑↓ oitava, 1–5 duração, ponto, quiáltera, pausa, apagar; gravar do braço/teclado (notas simultâneas viram acorde); inserir acorde do braço; nota selecionada aparece no braço; cursor de reprodução sincronizado ao transporte; notas escritas tocam no playback
+- Troca de instrumento ajusta oitava e re-digita; módulo opcional: só partitura, só tab ou ambas
+- Testes: casa 1 da 2ª corda = C4; E2 → 6ª corda solta; E2 + Drop D "manter alturas" → casa 2; Gb em Db maior; 7/8 2+2+3; pausas e ligaduras
+
 ## Próximas fases
 - [ ] Fase 3 — Som na afinação certa (Tone.js + smplr)
 - [ ] Fase 4 — Motor de sugestões e voicings

@@ -76,7 +76,7 @@ export function Fretboard({ onPlay, isFretDisabled }: FretboardProps) {
 
   return (
     <div className="overflow-x-auto overscroll-x-contain rounded-xl bg-neutral-900/60 ring-1 ring-white/5" data-testid="fretboard">
-      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="block select-none" role="grid" aria-label="Braço do instrumento">
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', minWidth: width, maxHeight: height * 1.45 }} className="block select-none" role="grid" aria-label="Braço do instrumento">
         {/* Board */}
         <rect x={mirror(leftHanded ? xs[fretCount] ?? 0 : NUT_X)} y={TOP - 10} width={(xs[fretCount] ?? 0) - NUT_X} height={STRING_GAP * (n - 1) + 20} fill="#2a1f17" rx={3} />
         {/* Capo shading */}
