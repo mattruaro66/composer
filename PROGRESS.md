@@ -1,0 +1,30 @@
+# PROGRESS
+
+## Fase 1 — Fundação e núcleo de teoria ✅
+
+**Feito**
+- Projeto Vite + React 18 + TypeScript (strict, `noUncheckedIndexedAccess`) + Tailwind v4 + Zustand + Vitest
+- Scripts: `npm run dev`, `npm run build`, `npm run test`
+- `src/theory/` (funções puras, sem React/Tone; tudo via Tonal.js):
+  - `notes.ts` — pitch class, cromas, enarmonia/regrafia (#/b), formatação cifra ↔ dó-ré-mi, MIDI, frequência com A4 ajustável, transposição de nota
+  - `intervals.ts` — distância em semitons, nome do intervalo, rótulo de grau (1, b3, #4…), descrição em pt-BR
+  - `keys.ts` — 9 modos de tom (maior, menor natural/harmônica/melódica, 7 modos gregos via dórico…lócrio), escala, grafia no tom (`spellInKey`), qualidade de acorde, campo harmônico de tríades e tétrades, graus romanos (estilo i–bIII–bVI–bVII) e função T/SD/D, grafia mais simples de tônica
+  - `chords.ts` — detecção de acorde com ranking (G/B antes de Bm#5), inversão (fundamental, 1ª, 2ª, 3ª, baixo fora do acorde), parser que aceita cifra brasileira (C7M, Bm7(b5), B°)
+  - `analysis.ts` — análise no tom: diatônico, dominante secundário (V/V, V7/IV), subV, empréstimo modal (com modo de origem), diminuto de passagem, cromático; detecção de tom a partir de uma progressão
+  - `transpose.ts` — transposição de acorde, tom e progressão com grafia no tom de destino
+  - `fretboard.ts` — nota por casa (corda solta + capotraste + casa), harmônicos naturais (12, 7, 5, 4, 9, 3.2) e artificiais (+12, pinch +19/+24)
+- 26 testes unitários cobrindo todos os casos do CLAUDE.md e os critérios de aceite da Fase 1 (campo de C maior, G/B 1ª inversão grau V, Am–F–C–G +2 → Bm–G–D–A, Drop D, harmônico casa 7 da corda A = E4, casa 1 da 2ª corda = C4, F# em G / Gb em Db, D3 ≈ 146,8 Hz…)
+
+**Notas de decisão**
+- Graus romanos usam acidentes relativos à escala maior da tônica (Am em A menor = i, C = bIII), igual à notação "i–bVII–bVI–V" do CLAUDE.md.
+- A matemática de casas/harmônicos ficou em `theory/fretboard.ts` (pura); os modelos de instrumento e presets de afinação vêm em `src/instrument/` na Fase 2.
+
+## Próximas fases
+- [ ] Fase 2 — Instrumentos, afinação, braço interativo e sistema de módulos
+- [ ] Fase 3 — Som na afinação certa (Tone.js + smplr)
+- [ ] Fase 4 — Motor de sugestões e voicings
+- [ ] Fase 5 — Progressão, tempo e sinalização de troca
+- [ ] Fase 6 — Modos de tocar
+- [ ] Fase 7 — Partitura e tablatura sincronizadas
+- [ ] Fase 8 — Composição avançada e didática
+- [ ] Fase 9 — Acabamento, persistência e PWA
