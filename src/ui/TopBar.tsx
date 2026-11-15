@@ -5,6 +5,7 @@ import { useLayout } from '../store/layout'
 import { useUi } from '../store/ui'
 import { KeySelector } from './KeySelector'
 import { TempoControls } from './TempoControls'
+import { AudioIndicator } from './AudioIndicator'
 
 export function TopBar() {
   const instrumentId = useInstrument((s) => s.instrumentId)
@@ -42,6 +43,7 @@ export function TopBar() {
       <KeySelector />
       <TempoControls />
       <div className="ml-auto flex items-center gap-1">
+        <AudioIndicator />
         <select
           className="field"
           aria-label="Área de trabalho"

@@ -4,6 +4,7 @@ import {
   GUITAR6_TUNINGS,
   cycleStringMarker,
   defaultTuning,
+  fretFrequency,
   matchTuningPreset,
   notesByPitch,
   shiftString,
@@ -52,5 +53,21 @@ describe('instrument models', () => {
     expect(defaultTuning('electric7')).toHaveLength(7)
     expect(defaultTuning('bass4')).toEqual(['E1', 'A1', 'D2', 'G2'])
     expect(defaultTuning('bass5')).toHaveLength(5)
+  })
+})
+
+describe('audio frequencies follow the tuning', () => {
+  it('standard tuning, fret 5 of the A string = D3 ≈ 146.8 Hz', () => {
+    expect(fretFrequency(tuning('standard'), 1, 5)).toBeCloseTo(146.83, 1)
+  })
+  it('switching to Drop D lowers the open 6th string by a whole tone', () => {
+    const std = fretFrequency(tuning('standard'), 0, 0)!
+    const drop = fretFrequency(tuning('dropD'), 0, 0)!
+    expect(std).toBeCloseTo(82.41, 1)
+    expect(drop).toBeCloseTo(73.42, 1)
+    expect(12 * Math.log2(std / drop)).toBeCloseTo(2, 5)
+  })
+  it('A4 reference shifts every note', () => {
+    expect(fretFrequency(tuning('standard'), 5, 5, 0, 432)).toBeCloseTo(432, 5)
   })
 })

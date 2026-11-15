@@ -26,6 +26,13 @@
 - Sistema de módulos: registro central com lazy loading, painéis minimizáveis (abas), ocultáveis, redimensionáveis, reposicionáveis (menu e arrastar entre docas topo/esquerda/direita/inferior), largura lateral ajustável, modo foco, presets Mínimo/Compositor/Partitura/Didático + presets do usuário, ErrorBoundary por módulo
 - Configurações: módulos e seus recursos, áreas de trabalho, notação (cifra/dó-ré-mi, ♯/♭/auto, cifra BR/intl), áudio, sinalização
 
+## Fase 3 — Som na afinação certa ✅
+- `src/audio/`: AudioContext criado/resumido no primeiro gesto (política de autoplay); Tone.js + smplr carregados sob demanda (chunk separado)
+- Samples MusyngKite por instrumento (violão aço, guitarra limpa, baixo finger, piano), troca automática ao mudar instrumento; indicador de carregamento no topo
+- Fallback: Tone.PluckSynth (Karplus-Strong) por corda; PolySynth para piano; timbre senoidal para harmônicos
+- Uma voz por corda; detune pela referência A4 (415–466 Hz); volume master, bus de metrônomo separado, reverb leve opcional; lookAhead 20 ms
+- Testes: casa 5 da corda A = 146,8 Hz; Drop D desce a 6ª corda 1 tom; A4 ajustável
+
 ## Próximas fases
 - [ ] Fase 3 — Som na afinação certa (Tone.js + smplr)
 - [ ] Fase 4 — Motor de sugestões e voicings

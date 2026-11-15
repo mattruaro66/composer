@@ -1,5 +1,5 @@
 import { BASS4_TUNINGS, BASS5_TUNINGS, GUITAR6_TUNINGS, GUITAR7_TUNINGS, type TuningPreset } from './tunings'
-import { fretMidi, fromMidi, toMidi, type AccidentalPreference } from '../theory'
+import { fretMidi, fromMidi, midiToFreq, toMidi, type AccidentalPreference } from '../theory'
 
 export type InstrumentId = 'acoustic' | 'electric6' | 'electric7' | 'bass4' | 'bass5' | 'piano'
 export type SampleSet = 'acoustic' | 'electric' | 'bass' | 'piano'
@@ -74,4 +74,10 @@ export function instrumentRange(id: InstrumentId, tuning: string[], capo = 0, pi
   if (def.kind === 'piano') return [21, 108].map((x, i) => (i === 0 ? Math.min(x, (pianoOctave + 1) * 12) : x)) as [number, number]
   const mids = tuning.map((n) => toMidi(n) ?? 0)
   return [Math.min(...mids) + capo, Math.max(...mids) + def.frets]
+}
+
+/** Frequency (Hz) of a fret on a string — always derived from the current tuning, capo and A4. */
+export function fretFrequency(tuning: string[], stringIndex: number, fret: number, capo = 0, a4 = 440): number | null {
+  const m = stringMidi(tuning, stringIndex, fret, capo)
+  return m === null ? null : midiToFreq(m, a4)
 }
