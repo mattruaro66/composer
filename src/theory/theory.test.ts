@@ -188,3 +188,19 @@ describe('fretboard math', () => {
     expect(artificialHarmonic('G3', 3)).toBe('A#4')
   })
 })
+
+import { displayChord } from './format'
+describe('display formatting', () => {
+  const base = { system: 'letter' as const, accidentals: 'auto' as const, style: 'br' as const }
+  it('Brazilian chord symbols', () => {
+    expect(displayChord('Cmaj7', base)).toBe('C7M')
+    expect(displayChord('Bm7b5', base)).toBe('Bm7(♭5)')
+    expect(displayChord('Bdim', base)).toBe('B°')
+    expect(displayChord('G/B', base)).toBe('G/B')
+  })
+  it('solfège and key-aware spelling', () => {
+    expect(displayChord('Am', { ...base, system: 'solfege' })).toBe('Lám')
+    expect(displayChord('F#', { ...base, key: { tonic: 'Db', mode: 'major' } })).toBe('G♭')
+    expect(displayChord('A#m7', { ...base, accidentals: 'flat', style: 'intl' })).toBe('B♭m7')
+  })
+})

@@ -147,7 +147,8 @@ export function detectChords(notes: string[]): DetectedChord[] {
       bass,
       inversion,
       notes: chordNotes,
-      score: rank + invPenalty,
+      // Tie-breaker: shorter (simpler) symbols win.
+      score: rank + invPenalty + suffix.length * 0.05,
     })
   }
   result.sort((a, b) => a.score - b.score)

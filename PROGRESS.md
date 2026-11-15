@@ -19,8 +19,14 @@
 - Graus romanos usam acidentes relativos à escala maior da tônica (Am em A menor = i, C = bIII), igual à notação "i–bVII–bVI–V" do CLAUDE.md.
 - A matemática de casas/harmônicos ficou em `theory/fretboard.ts` (pura); os modelos de instrumento e presets de afinação vêm em `src/instrument/` na Fase 2.
 
+## Fase 2 — Instrumentos, afinação, braço e módulos ✅
+- `src/instrument/`: violão, guitarra 6/7, baixo 4/5, piano; presets de afinação (todos os do CLAUDE.md + 7 cordas e baixo), edição por corda, capotraste (casas relativas ao capo), seleção uma casa por corda, X/0
+- Stores Zustand persistidos: `settings`, `instrument`, `song` (modelo completo de música já preparado para as fases 5–8), `layout`, `ui`
+- UI: `Fretboard` (SVG, marcações, capo, canhoto, nomes/graus/intervalos/nada, escala no braço, pontos fantasmas), `PianoOctave` (seletor de oitava), `TuningPanel`, `KeySelector` (+ detectar tom), `TempoControls`, painel de Análise
+- Sistema de módulos: registro central com lazy loading, painéis minimizáveis (abas), ocultáveis, redimensionáveis, reposicionáveis (menu e arrastar entre docas topo/esquerda/direita/inferior), largura lateral ajustável, modo foco, presets Mínimo/Compositor/Partitura/Didático + presets do usuário, ErrorBoundary por módulo
+- Configurações: módulos e seus recursos, áreas de trabalho, notação (cifra/dó-ré-mi, ♯/♭/auto, cifra BR/intl), áudio, sinalização
+
 ## Próximas fases
-- [ ] Fase 2 — Instrumentos, afinação, braço interativo e sistema de módulos
 - [ ] Fase 3 — Som na afinação certa (Tone.js + smplr)
 - [ ] Fase 4 — Motor de sugestões e voicings
 - [ ] Fase 5 — Progressão, tempo e sinalização de troca
