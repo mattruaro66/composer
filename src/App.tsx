@@ -6,6 +6,7 @@ import { useLayout } from './store/layout'
 import { useUi } from './store/ui'
 import { InstrumentView } from './ui/InstrumentView'
 import { SettingsDialog } from './ui/SettingsDialog'
+import { ProjectsDialog } from './ui/ProjectsDialog'
 import { TopBar } from './ui/TopBar'
 import { TuningPanel } from './ui/TuningPanel'
 
@@ -92,6 +93,7 @@ export default function App() {
         {!focus && <Dock dock="bottom" />}
       </main>
       <SettingsDialog />
+      <ProjectsDialog />
     </div>
   )
 }

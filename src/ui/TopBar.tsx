@@ -65,6 +65,9 @@ export function TopBar() {
         <button className={`btn ${focus ? 'btn-active' : ''}`} onClick={() => setFocus(!focus)} title="Modo foco: só o instrumento" data-testid="focus-toggle">
           ◎<span className="hidden xl:inline"> Foco</span>
         </button>
+        <button className="btn" onClick={() => setUi({ projectsOpen: true })} aria-label="Projetos e exportação" title="Projetos, JSON, cifra e MIDI" data-testid="projects-open">
+          📁
+        </button>
         <button className="btn" onClick={() => setUi({ settingsOpen: true })} aria-label="Configurações" data-testid="settings-open">
           ⚙
         </button>

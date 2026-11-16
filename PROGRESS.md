@@ -69,11 +69,20 @@
 - Didática: painel com explicações por nível (iniciante/avançado), dicas ao passar o mouse; círculo de quintas interativo (campo, relativos, dominantes secundários, vizinhos; clique toca, duplo clique adiciona); análise de cifra colada (com ou sem letra) com tom, graus, funções, empréstimos, cadências e importação como seção
 - Testes: G7 em C → Db7 entre as opções; melodia acima da tessitura → notas marcadas e tom sugerido; motivos; análise de cifra; transposição
 
-## Próximas fases
-- [ ] Fase 3 — Som na afinação certa (Tone.js + smplr)
-- [ ] Fase 4 — Motor de sugestões e voicings
-- [ ] Fase 5 — Progressão, tempo e sinalização de troca
-- [ ] Fase 6 — Modos de tocar
-- [ ] Fase 7 — Partitura e tablatura sincronizadas
-- [ ] Fase 8 — Composição avançada e didática
-- [ ] Fase 9 — Acabamento, persistência e PWA
+## Fase 9 — Acabamento, persistência e PWA ✅
+- Projetos salvos no navegador (com instrumento, afinação, capo e, opcionalmente, o layout), abrir/excluir, nova música; exportar/importar JSON validado; exportar cifra em texto (por seção, com barras) e MIDI (SMF tipo 1: andamento por seção, fórmulas de compasso, faixa de acordes e de melodia)
+- Tudo persiste ao recarregar: música, afinação (inclusive personalizadas), BPM, modo de tocar, configurações e layout
+- PWA: manifest, ícones, service worker com precache gerado no build (plugin Vite próprio, sem dependência nova) e cache dos samples conforme são usados → funciona offline
+- Notação cifra/dó-ré-mi e ♯/♭/automático (cromáticos mantêm a própria grafia: A♭ em Dó maior); layout responsivo (braço rolável no celular, painéis empilhados)
+- Playwright (`npm run e2e`): fluxo completo (guitarra em Drop D, tocar acorde, aceitar sugestão, tocar progressão, escrever na tab e conferir a pauta), todo módulo desliga/liga/minimiza sem erro, presets e modo foco, recarregar preserva tudo, exportações, layout mobile
+- Acessibilidade: rótulos ARIA em braço/teclas/painéis/diálogos, foco visível, atalhos de teclado; desempenho: Tone.js/smplr, VexFlow e cada painel carregados sob demanda
+
+## Situação
+Todas as 9 fases concluídas. 106 testes unitários + 5 testes E2E passando.
+
+## Evoluções sugeridas (pós-MVP)
+- Entrada por microfone (detecção de nota/acorde)
+- Linha de baixo e bateria automáticas
+- Sugestões com IA (API do Claude) explicando escolhas por estilo
+- App nativo via Capacitor se o PWA não bastar no iOS
+- Glissando real no slide (hoje é aproximado por notas cromáticas rápidas)

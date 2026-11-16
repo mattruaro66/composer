@@ -13,13 +13,14 @@ interface UiState {
   ghostSource: string | null
   tuningOpen: boolean
   settingsOpen: boolean
+  projectsOpen: boolean
   /** Index of the chord being played by the transport, for highlighting. */
   playingChordIndex: number | null
   /** Chord the user focused in suggestions/circle (drives the voicing browser). */
   focusChord: string | null
   setGhosts: (ghosts: GhostDot[], source?: string | null) => void
   clearGhosts: (source?: string) => void
-  set: (patch: Partial<Pick<UiState, 'tuningOpen' | 'settingsOpen' | 'playingChordIndex' | 'focusChord'>>) => void
+  set: (patch: Partial<Pick<UiState, 'tuningOpen' | 'settingsOpen' | 'projectsOpen' | 'playingChordIndex' | 'focusChord'>>) => void
 }
 
 export const useUi = create<UiState>()((set) => ({
@@ -27,6 +28,7 @@ export const useUi = create<UiState>()((set) => ({
   ghostSource: null,
   tuningOpen: false,
   settingsOpen: false,
+  projectsOpen: false,
   playingChordIndex: null,
   focusChord: null,
   setGhosts: (ghosts, source = null) => set({ ghosts, ghostSource: source }),
