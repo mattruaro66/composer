@@ -1,5 +1,6 @@
 import { formatNote, type AccidentalPreference, type NoteSystem } from './notes'
-import { spellInKey, type Key } from './keys'
+import { keyScale, spellInKey, type Key } from './keys'
+import { chroma } from './notes'
 
 export interface FormatOptions {
   system: NoteSystem
@@ -31,7 +32,8 @@ const BR_SUFFIX: [RegExp, string][] = [
 
 function spellRoot(note: string, opts: FormatOptions): string {
   if (opts.accidentals === 'auto') {
-    const spelled = opts.key ? spellInKey(note, opts.key) : note
+    // Diatonic notes follow the key's spelling; chromatic ones keep their own (Ab stays Ab in C).
+    const spelled = opts.key && keyScale(opts.key).some((n) => chroma(n) === chroma(note)) ? spellInKey(note, opts.key) : note
     return formatNote(spelled, { system: opts.system })
   }
   return formatNote(note, { system: opts.system, accidentals: opts.accidentals })

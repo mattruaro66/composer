@@ -202,5 +202,7 @@ describe('display formatting', () => {
     expect(displayChord('Am', { ...base, system: 'solfege' })).toBe('Lám')
     expect(displayChord('F#', { ...base, key: { tonic: 'Db', mode: 'major' } })).toBe('G♭')
     expect(displayChord('A#m7', { ...base, accidentals: 'flat', style: 'intl' })).toBe('B♭m7')
+    expect(displayChord('Ab', { ...base, key: { tonic: 'C', mode: 'major' } })).toBe('A♭')
+    expect(displayChord('Eb', { ...base, key: { tonic: 'C', mode: 'major' } })).toBe('E♭')
   })
 })

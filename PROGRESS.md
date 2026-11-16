@@ -61,6 +61,14 @@
 - Troca de instrumento ajusta oitava e re-digita; módulo opcional: só partitura, só tab ou ambas
 - Testes: casa 1 da 2ª corda = C4; E2 → 6ª corda solta; E2 + Drop D "manter alturas" → casa 2; Gb em Db maior; 7/8 2+2+3; pausas e ligaduras
 
+## Fase 8 — Composição avançada e didática ✅
+- `suggest/reharm.ts`: rearmonização de trechos (subV, relativo, ii–V preparatório, dominantes secundários, diminuto de passagem, empréstimo modal, pedal) → 3 alternativas, ouvir A/B, aplicar
+- `suggest/modulation.ts`: caminhos por acorde pivô, dominante, ii–V ou direta; aplicar cria seção no novo tom marcada na forma (↗)
+- Melodia: chord-scale do acorde atual (notas do acorde destacadas, mostrar no braço), próxima nota, ferramentas de motivo (repetir, sequência diatônica ↑↓, inversão, retrógrado, aumentação/diminuição), alertas (choque em tempo forte/nota longa, saltos > 8ª)
+- Tessitura: vozes (soprano…baixo) ou mín/máx, notas fora em laranja na partitura, sugestão de tom e "Transpor música" (acordes, melodia, voicings, tons das seções — `song/transform.ts`)
+- Didática: painel com explicações por nível (iniciante/avançado), dicas ao passar o mouse; círculo de quintas interativo (campo, relativos, dominantes secundários, vizinhos; clique toca, duplo clique adiciona); análise de cifra colada (com ou sem letra) com tom, graus, funções, empréstimos, cadências e importação como seção
+- Testes: G7 em C → Db7 entre as opções; melodia acima da tessitura → notas marcadas e tom sugerido; motivos; análise de cifra; transposição
+
 ## Próximas fases
 - [ ] Fase 3 — Som na afinação certa (Tone.js + smplr)
 - [ ] Fase 4 — Motor de sugestões e voicings

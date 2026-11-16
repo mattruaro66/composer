@@ -43,6 +43,8 @@ export interface RenderInput {
   showRoman: boolean
   selectedId: string | null
   invalidIds: Set<string>
+  /** Notes outside the vocal range (orange). */
+  warnIds?: Set<string>
   width: number
   dark: boolean
 }
@@ -189,7 +191,9 @@ export function renderNotation(el: HTMLDivElement, input: RenderInput): RenderRe
         if (item.dur.dots) Dot.buildAndAttach([sn], { all: true })
         const invalid = sorted.some((n) => input.invalidIds.has(n.id))
         const selected = sorted.some((n) => n.id === input.selectedId)
+        const warn = sorted.some((n) => input.warnIds?.has(n.id))
         if (invalid) sn.setStyle({ fillStyle: '#ef4444', strokeStyle: '#ef4444' })
+        else if (warn) sn.setStyle({ fillStyle: '#ea580c', strokeStyle: '#ea580c' })
         else if (selected) sn.setStyle({ fillStyle: '#0284c7', strokeStyle: '#0284c7' })
         return sn
       }

@@ -81,6 +81,13 @@ export default function NotationPanel() {
     for (const n of section?.notes ?? []) if (!isPlayable(n, strings ? tuning : [], capo, maxFret, range)) set.add(n.id)
     return set
   }, [section, strings, tuning, capo, maxFret, range])
+  const tess = song.tessitura
+  const tessOn = useModuleEnabled('tessitura')
+  const warnIds = useMemo(() => {
+    const set = new Set<string>()
+    if (tessOn && tess) for (const n of section?.notes ?? []) if (n.midi !== null && (n.midi < tess.min || n.midi > tess.max)) set.add(n.id)
+    return set
+  }, [section, tess, tessOn])
   const chordMarks = useMemo(() => {
     if (!section) return []
     const layout = layoutSection(song, section)
@@ -126,6 +133,7 @@ export default function NotationPanel() {
           showRoman: didactic,
           selectedId: selected,
           invalidIds: invalid,
+          warnIds,
           width,
           dark: false,
         }),
@@ -133,7 +141,7 @@ export default function NotationPanel() {
     } catch (err) {
       console.error('[notation] render failed', err)
     }
-  }, [measures, def.clef, key, strings, tuning.length, showScore, showTab, chordMarks, didactic, selected, invalid, width, section])
+  }, [measures, def.clef, key, strings, tuning.length, showScore, showTab, chordMarks, didactic, selected, invalid, warnIds, width, section])
 
   // Show the selected note on the instrument.
   useEffect(() => {

@@ -74,6 +74,8 @@ export interface Song {
   sections: Section[]
   /** Order of section ids that forms the song (repetitions allowed). */
   form: string[]
+  /** Vocal range for the melody (MIDI, inclusive). */
+  tessitura?: { min: number; max: number; preset?: string }
 }
 
 let counter = 0
