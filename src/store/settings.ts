@@ -40,7 +40,7 @@ export const DEFAULT_MODULE_OPTIONS: Record<string, Record<string, boolean>> = {
   suggestions: { complete: true, next: true, bold: true, explain: true },
   notation: { score: true, tab: true },
   analysis: { notes: true, intervals: true, chord: true, degree: true },
-  transport: { metronome: true, countIn: true, loop: true },
+  transport: { metronome: false, countIn: false, loop: true },
 }
 
 export const useSettings = create<SettingsState>()(
@@ -75,7 +75,18 @@ export const useSettings = create<SettingsState>()(
       setOption: (moduleId, option, value) =>
         set((s) => ({ moduleOptions: { ...s.moduleOptions, [moduleId]: { ...s.moduleOptions[moduleId], [option]: value } } })),
     }),
-    { name: 'composer.settings', storage: safeStorage, version: 2, merge: (persisted, current) => ({ ...current, ...(persisted as object), sound: { ...DEFAULT_SOUND, ...((persisted as Partial<SettingsState>)?.sound ?? {}) } }) },
+    {
+      name: 'composer.settings',
+      storage: safeStorage,
+      version: 3,
+      // v3: metronome and count-in became global switches, off by default.
+      migrate: (state, version) => {
+        const st = state as Partial<SettingsState>
+        if (version < 3 && st.moduleOptions) st.moduleOptions = { ...st.moduleOptions, transport: { ...st.moduleOptions.transport, metronome: false, countIn: false } }
+        return st as SettingsState
+      },
+      merge: (persisted, current) => ({ ...current, ...(persisted as object), sound: { ...DEFAULT_SOUND, ...((persisted as Partial<SettingsState>)?.sound ?? {}) } }),
+    },
   ),
 )
 

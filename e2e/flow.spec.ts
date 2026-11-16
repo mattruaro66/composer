@@ -76,13 +76,13 @@ test('todo módulo pode ser desligado, ligado e minimizado sem erro; presets fun
   await fresh(page)
   await page.getByTestId('workspace-select').selectOption('didactic')
   const panels = page.locator('section[data-testid^=panel-]')
-  await expect(panels).toHaveCount(16)
+  await expect(panels).toHaveCount(17)
   // Minimize every panel, then restore from the tabs
   const ids = await panels.evaluateAll((els) => els.map((e) => e.getAttribute('data-testid')!.replace('panel-', '')))
   for (const id of ids) await page.getByTestId(`panel-${id}`).getByRole('button', { name: /^Minimizar/ }).click()
   await expect(panels).toHaveCount(0)
   for (const id of ids) await page.getByTestId(`tab-${id}`).click()
-  await expect(panels).toHaveCount(16)
+  await expect(panels).toHaveCount(17)
   // Turn every module off and back on
   await openSettingsTab(page, 'Módulos')
   for (const id of ids) await page.getByTestId(`module-toggle-${id}`).uncheck()
@@ -92,7 +92,7 @@ test('todo módulo pode ser desligado, ligado e minimizado sem erro; presets fun
   await openSettingsTab(page, 'Módulos')
   for (const id of ids) await page.getByTestId(`module-toggle-${id}`).check()
   await closeSettings(page)
-  await expect(panels).toHaveCount(16)
+  await expect(panels).toHaveCount(17)
   await expect(page.getByText(/encontrou um erro/)).toHaveCount(0)
 
   // Presets
@@ -137,6 +137,38 @@ test('som: presets, sustain, abafar e strum por gesto funcionam sem erro', async
   await page.mouse.up()
   await page.getByTestId('damp-main').click()
   expect(errors).toEqual([])
+})
+
+test('metrônomo liga e desliga pelo topo, inclusive sozinho', async ({ page }) => {
+  await fresh(page)
+  const metro = page.getByTestId('metronome-top')
+  await expect(metro).toHaveAttribute('aria-pressed', 'false')
+  await expect(page.getByTestId('top-play')).toBeDisabled()
+  await metro.click()
+  await expect(metro).toHaveAttribute('aria-pressed', 'true')
+  await page.getByTestId('top-play').click()
+  await expect(page.locator('[data-testid=timeline] [data-testid=beat-indicator] [data-on=true]')).toHaveCount(1, { timeout: 10_000 })
+  await metro.click() // off: a metronome-only playback stops
+  await expect(metro).toHaveAttribute('aria-pressed', 'false')
+  await expect(page.getByTestId('top-play')).toBeDisabled({ timeout: 5_000 })
+})
+
+test('modo solo: notas soltas com escala no braço e gravação passo a passo', async ({ page }) => {
+  await fresh(page)
+  await page.getByTestId('mode-solo').click()
+  await expect(page.getByTestId('solo-bar')).toBeVisible()
+  await expect(page.getByTestId('strum-pad')).toHaveCount(0)
+  await page.getByTestId('solo-scale').selectOption('blues')
+  await page.getByTestId('solo-record').click()
+  for (const [s, f] of [[4, 1], [4, 3], [3, 2], [3, 2]]) await page.getByTestId(`fret-${s}-${f}`).click()
+  await expect(page.getByTestId('solo-bar')).toContainText('4 notas')
+  // In solo mode frets do not stay selected as a chord
+  await expect(page.locator('[aria-selected=true]')).toHaveCount(0)
+  await page.getByRole('button', { name: '↶ Desfazer' }).click()
+  await expect(page.getByTestId('solo-bar')).toContainText('3 notas')
+  await page.getByTestId('solo-record').click()
+  await page.getByTestId('mode-chords').click()
+  await expect(page.getByTestId('strum-pad').first()).toBeAttached()
 })
 
 test('recarregar preserva projeto, afinação, BPM e layout', async ({ page }) => {

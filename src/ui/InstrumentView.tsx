@@ -14,6 +14,8 @@ import { useDetection, useFormat } from './hooks'
 import { emitNotePlayed } from './noteEvents'
 import { playChordNow, playFret } from './playActions'
 import { toast } from './toast'
+import { useSolo } from '../store/solo'
+import { SoloBar } from './SoloBar'
 
 export function InstrumentView() {
   const instrumentId = useInstrument((s) => s.instrumentId)
@@ -29,6 +31,9 @@ export function InstrumentView() {
   const fmt = useFormat()
   const def = INSTRUMENTS[instrumentId]
   const prev = useRef<StringState[]>(frets)
+  const interaction = useSolo((s) => s.mode)
+  const setSolo = useSolo((s) => s.set)
+  const soloMode = interaction === 'solo'
 
   // Lifting a finger (deselect) or muting a string (×) damps it; marking a string open plucks it.
   useEffect(() => {
@@ -59,6 +64,25 @@ export function InstrumentView() {
 
   return (
     <div className="flex flex-col gap-3" data-testid="instrument">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex rounded-xl p-1" style={{ background: 'var(--surface)', boxShadow: 'inset 0 0 0 1px var(--line)' }} role="radiogroup" aria-label="Modo do instrumento">
+          {(['chords', 'solo'] as const).map((m) => (
+            <button
+              key={m}
+              role="radio"
+              aria-checked={interaction === m}
+              onClick={() => setSolo({ mode: m, recording: false })}
+              className={`rounded-lg px-3.5 py-1.5 text-sm font-semibold transition ${interaction === m ? 'bg-[var(--accent)] text-[var(--accent-ink)]' : 'text-[var(--muted)] hover:text-[var(--fg)]'}`}
+              data-testid={`mode-${m}`}
+            >
+              {m === 'chords' ? 'Acordes' : 'Solo / melodia'}
+            </button>
+          ))}
+        </div>
+        <span className="text-xs text-[var(--faint)]">
+          {soloMode ? 'Cada toque é uma nota; a escala aparece no braço.' : 'Monte acordes no braço (uma casa por corda) e adicione à progressão.'}
+        </span>
+      </div>
       {def.kind === 'piano' ? (
         <PianoOctave
           onPlay={(m) => {
@@ -71,23 +95,28 @@ export function InstrumentView() {
         <div className="flex flex-col gap-2 md:flex-row">
           <div className="min-w-0 flex-1">
             <Fretboard
-              onPlay={(si, fret) => {
+              onPlay={(si, fret, prevFret) => {
                 const p = frets[si]
-                playFret(si, fret, typeof p === 'number' ? p : null)
+                playFret(si, fret, soloMode ? (prevFret ?? null) : typeof p === 'number' ? p : null)
               }}
               onRelease={(si) => noteMode === 'damp' && audio.releaseString(si)}
               isFretDisabled={mode === 'harmonicNatural' ? (f) => !isHarmonicFretEnabled(f) : undefined}
             />
           </div>
-          <div className="hidden md:flex">
-            <StrumPad orientation="vertical" />
-          </div>
-          <div className="md:hidden">
-            <StrumPad orientation="horizontal" />
-          </div>
+          {!soloMode && (
+            <>
+              <div className="hidden md:flex">
+                <StrumPad orientation="vertical" />
+              </div>
+              <div className="md:hidden">
+                <StrumPad orientation="horizontal" />
+              </div>
+            </>
+          )}
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-2">
+      {soloMode && <SoloBar />}
+      <div className={`flex flex-wrap items-center gap-2 ${soloMode ? 'hidden' : ''}`}>
         <div className="mr-1 flex min-w-24 items-baseline gap-2">
           <span className="font-display text-2xl font-semibold tracking-tight" data-testid="current-chord">
             {chord ? fmt.chord(chord.symbol) : notes.length ? '—' : ''}

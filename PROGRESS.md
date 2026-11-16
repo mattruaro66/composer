@@ -93,11 +93,26 @@
 - Popover "Som" com botões giratórios (arrastar, roda do mouse, setas; duplo clique restaura), módulo Som e área de trabalho "Tocar"
 - Toasts de confirmação, dica inicial, Esc para abafar, tipografia Inter + Space Grotesk, paleta grafite com âmbar
 
+## Rodada 3 — Metrônomo, modo Solo e Claude ✅
+**Metrônomo**
+- Botão no topo (liga/desliga a qualquer momento), funciona sozinho sem acordes (play vira metrônomo livre), desligado por padrão; contagem de entrada também desligada por padrão; desligar durante um metrônomo livre para o transporte. Ajustes salvos antigos foram migrados
+
+**Modo Solo / melodia** (alternância "Acordes | Solo" acima do braço)
+- Cada toque é uma nota (não monta acorde), com flash no ponto tocado; ligados usam a última nota da corda
+- Escalas no braço inteiro: pentatônica menor/maior, blues, escala do tom, escala do acorde (segue a progressão) e arpejo; tônica em âmbar e notas do acorde que está tocando com anel azul; rótulos por nome ou grau
+- Gravação: com a base tocando, as notas entram no tempo real (quantização 1/16, 1/8 tercina, 1/8, 1/4 ou livre; cada nota dura até a próxima); parado, entram em sequência com a duração escolhida; desfazer e limpar; tudo vai para a melodia da seção (partitura/tab e playback)
+- `theory/soloScales.ts` e `positionAt()` no agendador (posição do transporte → tick da seção), com testes
+
+**Claude (IA)** — botão ✳ Claude no topo (janela lateral) e módulo "Claude" encaixável
+- Conversa com o estado atual da música (tom, seções, acordes, melodia, letra, instrumento); ferramentas que **propõem** progressão, melodia/solo, letra ou música completa — cada proposta tem Ouvir, Aplicar e Desfazer; nada muda sozinho
+- No link do claude.ai usa a conta do próprio usuário (capacidade `sample`, sem chave); no app usa o SDK oficial `@anthropic-ai/sdk` com a chave do usuário guardada só no navegador (Claude Opus 5.5, esforço médio, streaming, fallback automático do servidor, validação de toda entrada de ferramenta)
+- Letra por seção (campo no painel Estrutura; vai junto na exportação de cifra)
+- Testes: validação/aplicação de propostas (unitários) e os dois caminhos ponta a ponta com respostas simuladas (sem gastar chamadas reais)
+
 ## Situação
-Todas as 9 fases concluídas + rodada de som/UX. 117 testes unitários + 6 testes E2E passando.
+Todas as 9 fases concluídas + rodada de som/UX. 128 testes unitários + 10 testes E2E passando.
 
 ## Evoluções sugeridas (pós-MVP)
 - Entrada por microfone (detecção de nota/acorde)
 - Linha de baixo e bateria automáticas
-- Sugestões com IA (API do Claude) explicando escolhas por estilo
 - App nativo via Capacitor se o PWA não bastar no iOS

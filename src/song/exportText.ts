@@ -33,7 +33,9 @@ export function songToChordText(song: Song, fmt: Omit<FormatOptions, 'key'>): st
       bars[mi]?.push(displayChord(c.symbol, { ...fmt, key }))
     })
     const barText = bars.map((b) => (b.length ? b.join(' ') : '%')).join(' | ')
-    lines.push(sec.chords.length ? `| ${barText} |` : '(sem acordes)', '')
+    lines.push(sec.chords.length ? `| ${barText} |` : '(sem acordes)')
+    if (sec.lyrics?.trim()) lines.push(sec.lyrics.trim())
+    lines.push('')
   }
   return lines.join('\n')
 }

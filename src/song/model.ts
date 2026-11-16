@@ -62,6 +62,8 @@ export interface Section {
   pickup?: number
   /** Marked modulation point (target key) at the start of this section. */
   modulation?: Key
+  /** Lyrics of the section (free text, one line per sung phrase). */
+  lyrics?: string
 }
 
 export interface Song {

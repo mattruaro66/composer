@@ -1,8 +1,8 @@
 import * as Tone from 'tone'
-import { buildSchedule, type Schedule } from '../song/schedule'
+import { buildSchedule, positionAt, type Schedule } from '../song/schedule'
+import { setPositionProvider } from './position'
 import { useSong } from '../store/song'
 import { useTransport } from '../store/transport'
-import { useLayout } from '../store/layout'
 import { useSettings } from '../store/settings'
 import { useUi } from '../store/ui'
 import { getEngine } from './index'
@@ -13,10 +13,18 @@ let scheduled: number[] = []
 let unsub: (() => void) | null = null
 let current: Schedule | null = null
 
-function optionOn(option: string): boolean {
-  const layoutOn = useLayout.getState().panels.transport?.enabled ?? false
-  if (!layoutOn) return false
-  return useSettings.getState().moduleOptions.transport?.[option] ?? true
+/** Metronome and count-in are global switches (top bar and the tempo panel), off by default. */
+function optionOn(option: 'metronome' | 'countIn'): boolean {
+  return useSettings.getState().moduleOptions.transport?.[option] ?? false
+}
+
+setPositionProvider(() => {
+  if (!current || useTransport.getState().status !== 'playing') return null
+  return positionAt(current, Tone.getTransport().seconds)
+})
+
+function hasContent(sch: Schedule | null): boolean {
+  return !!sch && (sch.chords.length > 0 || sch.notes.length > 0)
 }
 
 function build(): Schedule {
@@ -106,7 +114,7 @@ async function scheduleAll(): Promise<void> {
     )
   }
   // Loop the music (count-in plays only once).
-  T.loop = loop && sch.total > 0
+  T.loop = (loop || !hasContent(sch)) && sch.total > 0
   T.loopStart = sch.countInDuration
   T.loopEnd = sch.countInDuration + Math.max(sch.total, 0.001)
   // Stop at the end when not looping.
@@ -122,7 +130,8 @@ export async function play(): Promise<void> {
     return
   }
   await scheduleAll()
-  if (!current || current.chords.length === 0) {
+  // With nothing written, play still works as a free-running metronome.
+  if (!current || (!hasContent(current) && !optionOn('metronome'))) {
     state.set({ status: 'stopped' })
     return
   }
@@ -140,9 +149,17 @@ export async function play(): Promise<void> {
   const u2 = useTransport.subscribe((s, prev) => {
     if (s.scope !== prev.scope || s.loop !== prev.loop) resched()
   })
+  // Turning the metronome off stops a metronome-only playback right away.
+  const u3 = useSettings.subscribe((s, prev) => {
+    const on = s.moduleOptions.transport?.metronome ?? false
+    const was = prev.moduleOptions.transport?.metronome ?? false
+    if (on === was) return
+    if (!on && !hasContent(current)) void stop()
+  })
   unsub = () => {
     u1()
     u2()
+    u3()
   }
 }
 

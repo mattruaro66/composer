@@ -34,6 +34,8 @@ alternável entre cifra (C, D, E…) e dó-ré-mi, e entre sustenidos e bemóis.
   próprias (envelope por corda, sustain, fade, abafar); Karplus-Strong estendido como fallback
 - Zustand para estado; Tailwind para estilo
 - Vitest para lógica; Playwright para um teste de fluxo ponta a ponta
+- IA: @anthropic-ai/sdk (claude-opus-5-5) com a chave do usuário no app; capacidade `sample` quando aberto no claude.ai.
+  O Claude só propõe (progressão, melodia/solo, letra, música); o usuário ouve e aplica
 
 ## Arquitetura (pastas)
 src/

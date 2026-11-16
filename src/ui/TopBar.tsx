@@ -6,6 +6,7 @@ import { useLayout } from '../store/layout'
 import { useActiveSection, useSong } from '../store/song'
 import { useTransport } from '../store/transport'
 import { useUi } from '../store/ui'
+import { useModuleOption, useSettings } from '../store/settings'
 import { AudioIndicator } from './AudioIndicator'
 import { KeySelector } from './KeySelector'
 import { PlayModeSelect } from './PlayModeSelect'
@@ -30,7 +31,9 @@ export function TopBar() {
   const status = useTransport((s) => s.status)
   const def = INSTRUMENTS[instrumentId]
   const preset = matchTuningPreset(instrumentId, tuning)
-  const canPlay = (section?.chords.length ?? 0) > 0 || (section?.notes.length ?? 0) > 0
+  const metronome = useModuleOption('transport', 'metronome')
+  const setOption = useSettings((s) => s.setOption)
+  const canPlay = (section?.chords.length ?? 0) > 0 || (section?.notes.length ?? 0) > 0 || metronome
 
   return (
     <header
@@ -52,6 +55,16 @@ export function TopBar() {
 
       <div className="ml-auto flex items-center gap-1.5 lg:order-last">
         <AudioIndicator />
+        <button
+          className="btn"
+          style={{ background: 'rgba(217,119,87,0.16)', boxShadow: 'inset 0 0 0 1px rgba(217,119,87,0.45)' }}
+          onClick={() => setUi({ aiOpen: true })}
+          title="Abrir o Claude: parceiro de composição"
+          data-testid="claude-open"
+        >
+          <span style={{ color: '#e8957a' }}>✳</span>
+          <span className="hidden sm:inline">Claude</span>
+        </button>
         <Popover label={<>🎛<span className="hidden sm:inline"> Som</span></>} testId="sound-open" title="Timbre, sustain, fade e efeitos">
           <SoundControls compact />
         </Popover>
@@ -104,7 +117,7 @@ export function TopBar() {
             onClick={() => void transport.toggle()}
             disabled={!canPlay && status === 'stopped'}
             aria-label={status === 'playing' ? 'Pausar' : 'Tocar a progressão'}
-            title={canPlay ? 'Tocar/pausar (espaço)' : 'Adicione acordes à progressão para tocar'}
+            title={canPlay ? 'Tocar/pausar (espaço)' : 'Adicione acordes à progressão ou ligue o metrônomo'}
             data-testid="top-play"
           >
             {status === 'playing' ? '❚❚' : '▶'}
@@ -113,6 +126,17 @@ export function TopBar() {
             ■
           </button>
           <TempoControls />
+          <button
+            className={`btn px-2.5 ${metronome ? 'btn-active' : ''}`}
+            aria-pressed={metronome}
+            onClick={() => setOption('transport', 'metronome', !metronome)}
+            title={metronome ? 'Metrônomo ligado: clique para desligar' : 'Ligar o metrônomo (funciona sozinho, sem acordes)'}
+            data-testid="metronome-top"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M8 3h8l4 18H4L8 3z" /><path d="M12 16l5-9" /></svg>
+            <span className="hidden sm:inline">Metrônomo</span>
+            <span className={`h-1.5 w-1.5 rounded-full ${metronome ? 'bg-sky-300' : 'bg-[var(--faint)]'}`} />
+          </button>
         </div>
 
         {def.kind === 'strings' && (

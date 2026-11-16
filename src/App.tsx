@@ -8,6 +8,7 @@ import { InstrumentView } from './ui/InstrumentView'
 import { SettingsDialog } from './ui/SettingsDialog'
 import { ProjectsDialog } from './ui/ProjectsDialog'
 import { Toaster } from './ui/Toaster'
+import { ClaudeWindow } from './ui/ClaudeWindow'
 import { audio } from './audio'
 import { TopBar } from './ui/TopBar'
 import { TuningPanel } from './ui/TuningPanel'
@@ -49,7 +50,7 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
-      if (e.key === 'Escape' && !useUi.getState().settingsOpen && !useUi.getState().projectsOpen) {
+      if (e.key === 'Escape' && !useUi.getState().settingsOpen && !useUi.getState().projectsOpen && !useUi.getState().aiOpen) {
         audio.damp()
         return
       }
@@ -100,6 +101,7 @@ export default function App() {
       </main>
       <SettingsDialog />
       <ProjectsDialog />
+      <ClaudeWindow />
       <Toaster />
     </div>
   )

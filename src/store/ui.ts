@@ -18,9 +18,12 @@ interface UiState {
   playingChordIndex: number | null
   /** Chord the user focused in suggestions/circle (drives the voicing browser). */
   focusChord: string | null
+  /** Claude window open, and a draft prompt to prefill. */
+  aiOpen: boolean
+  aiDraft: string | null
   setGhosts: (ghosts: GhostDot[], source?: string | null) => void
   clearGhosts: (source?: string) => void
-  set: (patch: Partial<Pick<UiState, 'tuningOpen' | 'settingsOpen' | 'projectsOpen' | 'playingChordIndex' | 'focusChord'>>) => void
+  set: (patch: Partial<Pick<UiState, 'tuningOpen' | 'settingsOpen' | 'projectsOpen' | 'playingChordIndex' | 'focusChord' | 'aiOpen' | 'aiDraft'>>) => void
 }
 
 export const useUi = create<UiState>()((set) => ({
@@ -31,6 +34,8 @@ export const useUi = create<UiState>()((set) => ({
   projectsOpen: false,
   playingChordIndex: null,
   focusChord: null,
+  aiOpen: false,
+  aiDraft: null,
   setGhosts: (ghosts, source = null) => set({ ghosts, ghostSource: source }),
   clearGhosts: (source) => set((s) => (source && s.ghostSource !== source ? {} : { ghosts: [], ghostSource: null })),
   set: (patch) => set(patch),

@@ -17,6 +17,9 @@ npm run e2e        # teste ponta a ponta (Playwright)
 - **Topo:** instrumento · afinação/capotraste · tom (+ detectar) · BPM e compasso · modo de tocar · área de trabalho · foco · 📁 projetos · ⚙ configurações
 - **Braço:** clique nas casas (uma por corda); clique à esquerda da corda alterna solta (○) / muda (×) / nada; clicar de novo numa casa tira o dedo e abafa a corda
 - **Área de strum** (ao lado do braço; abaixo no celular): arraste pelas cordas para tocar o acorde, toque numa corda para dedilhar
+- **Acordes | Solo:** no modo Solo cada toque é uma nota, a escala aparece no braço e dá para gravar o solo sobre a progressão
+- **✳ Claude:** converse sobre a música e receba progressões, solos, letras e músicas completas para ouvir e aplicar (no app, informe sua chave da API do Claude; ela fica só no navegador)
+- **Metrônomo:** botão no topo; funciona sozinho
 - **🎛 Som:** presets de timbre, sustain, fade, abafar/cortar, tom, EQ, drive, chorus, delay e reverb; **Esc** abafa tudo
 - **+ Progressão** adiciona o acorde detectado; nas sugestões, clique para ouvir/ver e dê duplo clique para adicionar
 - **Espaço** toca/pausa a progressão; no último tempo antes da troca aparece “Próximo: …” e o próximo acorde pisca no braço

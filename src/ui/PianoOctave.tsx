@@ -5,6 +5,8 @@ import { useCurrentKey } from '../store/song'
 import { useUi } from '../store/ui'
 import { useFormat } from './hooks'
 import { audio } from '../audio'
+import { useSolo } from '../store/solo'
+import { useSoloScale } from './soloTools'
 
 const WHITE = [0, 2, 4, 5, 7, 9, 11, 12]
 const BLACK: [number, number][] = [
@@ -33,7 +35,14 @@ export function PianoOctave({ onPlay, onRelease }: { onPlay?: (midi: number) => 
   const scale = new Set(keyScale(key).map(chroma))
   const tonic = chroma(key.tonic)
 
+  const soloMode = useSolo((s) => s.mode) === 'solo'
+  const soloShow = useSolo((s) => s.showScale)
+  const solo = useSoloScale()
   const click = (midi: number) => {
+    if (soloMode) {
+      onPlay?.(midi)
+      return
+    }
     if (!keys.includes(midi)) onPlay?.(midi)
     else audio.releaseString(null, midi)
     toggleKey(midi)
@@ -42,13 +51,16 @@ export function PianoOctave({ onPlay, onRelease }: { onPlay?: (midi: number) => 
 
   const renderKey = (offset: number, x: number, black: boolean) => {
     const midi = base + offset
-    const selected = keys.includes(midi)
+    const selected = !soloMode && keys.includes(midi)
     const pc = midi % 12
     const fill = selected ? (pc === tonic ? '#f59e0b' : '#38bdf8') : black ? '#171717' : '#fafafa'
     return (
       <g key={midi} onPointerDown={(e) => (e.preventDefault(), click(midi))} onPointerUp={() => onRelease?.(midi)} className="cursor-pointer" data-testid={`key-${midi}`} role="button" aria-pressed={selected} aria-label={`Tecla ${midi}`}>
         <rect x={x} y={0} width={black ? BW : WW} height={black ? BH : WH} rx={4} fill={fill} stroke="#404040" />
-        {showScale && !selected && scale.has(pc) && (
+        {soloMode && soloShow && solo.pcs.includes(pc) && (
+          <circle cx={x + (black ? BW : WW) / 2} cy={(black ? BH : WH) - 16} r={7} fill={pc === solo.root ? '#f5a524' : '#9aa3b2'} stroke={solo.chordTones.includes(pc) ? '#38bdf8' : 'none'} strokeWidth={2.5} opacity={0.85} />
+        )}
+        {!soloMode && showScale && !selected && scale.has(pc) && (
           <circle cx={x + (black ? BW : WW) / 2} cy={(black ? BH : WH) - 16} r={pc === tonic ? 7 : 5} fill={pc === tonic ? '#f59e0b' : '#a3a3a3'} opacity={0.6} />
         )}
         {isGhost(midi) && !selected && (

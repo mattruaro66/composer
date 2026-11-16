@@ -1,4 +1,5 @@
 export type ModuleId =
+  | 'ai'
   | 'sound'
   | 'analysis'
   | 'suggestions'
@@ -34,6 +35,7 @@ export interface ModuleMeta {
 }
 
 export const MODULES: ModuleMeta[] = [
+  { id: 'ai', name: 'Claude', description: 'Parceiro de composição com IA: progressões, solos, melodias, letras e músicas completas para ouvir e aplicar', defaultDock: 'right' },
   { id: 'sound', name: 'Som', description: 'Timbre, sustain, fade, abafar, equalização e efeitos (drive, chorus, delay, reverb)', defaultDock: 'right' },
   {
     id: 'analysis',

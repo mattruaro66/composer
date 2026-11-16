@@ -136,6 +136,10 @@ export default function StructurePanel() {
                     ) : (
                       <span className="text-neutral-500">herdado</span>
                     )}
+                    <label className="col-span-2 flex flex-col gap-1">
+                      Letra
+                      <textarea className="field min-h-20 py-1 text-sm leading-relaxed" placeholder="Uma linha por frase cantada" value={s.lyrics ?? ''} onChange={(e) => update(s.id, { lyrics: e.target.value })} onKeyDown={(e) => e.stopPropagation()} />
+                    </label>
                     <label className="col-span-2 flex items-center gap-1">
                       Anacruse (tempos)
                       <input className="field w-14 py-0.5" type="number" min={0} max={15} value={s.pickup ?? 0} onChange={(e) => update(s.id, { pickup: Number(e.target.value) || undefined })} />

@@ -41,6 +41,8 @@ export interface MeasureEvent {
   meter: TimeSig
   bpm: number
   sectionId: string
+  /** Tick where this measure starts inside its section (quarter = 480). */
+  startTick: number
   /** Number of pulses actually present (pickup / last measure may be partial). */
   pulses: number
   firstPulse: number
@@ -189,6 +191,7 @@ export function buildSchedule(song: Song, opts: ScheduleOptions = {}): Schedule 
     for (const m of layout.measures) {
       const ps = pulseSeconds(bpm, song.bpmUnit, m.meter.den)
       const mStart = t
+      const measureStartTick = sectionTick
       tickMap.push({ tick: sectionTick, time: t, secPerTick: ps / ticksPerPulse(m.meter.den) })
       sectionTick += m.pulses * ticksPerPulse(m.meter.den)
       for (let k = 0; k < m.pulses; k++) {
@@ -199,7 +202,7 @@ export function buildSchedule(song: Song, opts: ScheduleOptions = {}): Schedule 
         t += ps
         sectionPulse++
       }
-      measures.push({ index: measureIndex, time: mStart, duration: t - mStart, meter: m.meter, bpm, sectionId: section.id, pulses: m.pulses, firstPulse: m.firstPulse })
+      measures.push({ index: measureIndex, time: mStart, duration: t - mStart, meter: m.meter, bpm, sectionId: section.id, startTick: measureStartTick, pulses: m.pulses, firstPulse: m.firstPulse })
       measureIndex++
       localMeasure++
     }
@@ -242,4 +245,12 @@ function chordIndexAt(starts: number[], pulse: number, count: number, total: num
   let idx = 0
   for (let i = 0; i < starts.length; i++) if ((starts[i] ?? 0) <= pulse) idx = i
   return idx
+}
+
+/** Where in the music a transport time falls: section and tick inside it (null during the count-in). */
+export function positionAt(sch: Schedule, seconds: number): { sectionId: string; tick: number } | null {
+  const m = sch.measures.find((x) => seconds >= x.time && seconds < x.time + x.duration)
+  if (!m) return null
+  const ticks = m.pulses * ticksPerPulse(m.meter.den)
+  return { sectionId: m.sectionId, tick: m.startTick + ((seconds - m.time) / m.duration) * ticks }
 }

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { INSTRUMENTS, stringNumber, type StringState } from '../instrument'
 import { chroma, degreeLabel, fromMidi, keyScale, toMidi } from '../theory'
 import { useInstrument } from '../store/instrument'
@@ -7,6 +7,8 @@ import { useCurrentKey } from '../store/song'
 import { useUi, type GhostDot } from '../store/ui'
 import { useFormat, useDetection } from './hooks'
 import { useRinging } from './useRinging'
+import { useSolo } from '../store/solo'
+import { useSoloScale } from './soloTools'
 
 const NUT_X = 54
 const TOP = 26
@@ -17,7 +19,7 @@ const MARKERS = [3, 5, 7, 9, 15, 17, 19, 21]
 const DOUBLE = [12, 24]
 
 export interface FretboardProps {
-  onPlay?: (stringIndex: number, fret: number) => void
+  onPlay?: (stringIndex: number, fret: number, previousFret?: number | null) => void
   /** Called when the finger leaves a fret (used by "abafar ao soltar"). */
   onRelease?: (stringIndex: number) => void
   /** Frets (relative to capo) that cannot be clicked in the current play mode. */
@@ -42,6 +44,14 @@ export function Fretboard({ onPlay, onRelease, isFretDisabled }: FretboardProps)
   const { chord } = useDetection()
   const ringing = useRinging()
   const touch = useRef<{ x: number; y: number; si: number; rel: number; t: number } | null>(null)
+  const soloMode = useSolo((s) => s.mode) === 'solo'
+  const soloShow = useSolo((s) => s.showScale)
+  const soloLabels = useSolo((s) => s.labels)
+  const solo = useSoloScale()
+  const soloPcs = useMemo(() => new Set(solo.pcs), [solo])
+  const soloTones = useMemo(() => new Set(solo.chordTones), [solo])
+  const [flash, setFlash] = useState<{ si: number; rel: number; key: number } | null>(null)
+  const lastFret = useRef<(number | null)[]>([])
 
   const def = INSTRUMENTS[instrumentId]
   const fretCount = def.kind === 'strings' ? def.frets : 0
@@ -80,9 +90,17 @@ export function Fretboard({ onPlay, onRelease, isFretDisabled }: FretboardProps)
   // Mouse/pen: act on press (lowest latency). Touch: act on a tap so swiping scrolls the neck.
   const press = (si: number, rel: number, disabled: boolean, selected: boolean) => {
     if (disabled) return
+    if (soloMode) {
+      // Solo: every touch is a single note; legato techniques use the last note played on the string.
+      onPlay?.(si, rel, lastFret.current[si] ?? null)
+      lastFret.current[si] = rel
+      setFlash({ si, rel, key: performance.now() })
+      return
+    }
     if (!selected) onPlay?.(si, rel)
     toggleFret(si, rel)
   }
+  const soloLabel = (pc: number) => (soloLabels === 'degree' ? degreeLabel(fromMidi(60 + solo.root), fromMidi(60 + pc)) : fmt.note(fromMidi(60 + pc).replace(/-?\d+$/, '')))
 
   const boardX = Math.min(mirror(NUT_X), mirror(xs[fretCount] ?? 0))
   const boardW = (xs[fretCount] ?? 0) - NUT_X
@@ -192,12 +210,15 @@ export function Fretboard({ onPlay, onRelease, isFretDisabled }: FretboardProps)
                 />
               )}
               {/* Open / mute marker */}
-              <g role="button" aria-label={`Corda ${stringNumber(si, n)} (${open}): solta, muda ou nada`} onClick={() => cycleString(si)} className="cursor-pointer" data-testid={`string-marker-${si}`}>
+              <g role="button" aria-label={soloMode ? `Corda ${stringNumber(si, n)} solta` : `Corda ${stringNumber(si, n)} (${open}): solta, muda ou nada`} onClick={() => (soloMode ? press(si, 0, false, false) : cycleString(si))} className="cursor-pointer" data-testid={`string-marker-${si}`}>
                 <rect x={leftHanded ? mirror(NUT_X - 50) - 46 : 0} y={y - 15} width={46} height={30} fill="transparent" />
                 <text x={mirror(10)} y={y + 4} fontSize={10.5} fontWeight={600} fill="#7f8a99" textAnchor="middle">
                   {fmt.note(open.replace(/\d+$/, ''))}
                 </text>
-                <StringMarker state={state[si] ?? null} x={mirror(NUT_X - 24)} y={y} />
+                <StringMarker state={soloMode ? null : (state[si] ?? null)} x={mirror(NUT_X - 24)} y={y} />
+                {soloMode && soloShow && soloPcs.has(((toMidi(open) ?? 0) + capo) % 12) && (
+                  <circle cx={mirror(NUT_X - 24)} cy={y} r={7} fill={((toMidi(open) ?? 0) + capo) % 12 === solo.root ? 'var(--accent)' : '#d8dde5'} opacity={0.5} stroke={soloTones.has(((toMidi(open) ?? 0) + capo) % 12) ? '#38bdf8' : 'none'} strokeWidth={2} />
+                )}
               </g>
             </g>
           )
@@ -212,7 +233,7 @@ export function Fretboard({ onPlay, onRelease, isFretDisabled }: FretboardProps)
             const rel = k + 1
             const physical = rel + capo
             const midi = openMidi + physical
-            const selected = state[si] === rel
+            const selected = !soloMode && state[si] === rel
             const ghost = ghostFor(si, rel)
             const disabled = isFretDisabled?.(rel) ?? false
             const pc = midi % 12
@@ -251,7 +272,7 @@ export function Fretboard({ onPlay, onRelease, isFretDisabled }: FretboardProps)
                 }}
               >
                 <rect x={Math.min(mirror(x0), mirror(x1))} y={y - STRING_GAP / 2} width={x1 - x0} height={STRING_GAP} fill={disabled ? 'rgba(0,0,0,0.45)' : 'transparent'} />
-                {!selected && !disabled && (
+                {!selected && !disabled && !(soloMode && soloShow && soloPcs.has(pc)) && (
                   <g className="hover-dot" pointerEvents="none">
                     <circle cx={cx} cy={y} r={11} fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.35)" />
                     <text x={cx} y={y + 3.5} fontSize={9.5} textAnchor="middle" fill="#fff">
@@ -259,7 +280,21 @@ export function Fretboard({ onPlay, onRelease, isFretDisabled }: FretboardProps)
                     </text>
                   </g>
                 )}
-                {showScale && !selected && !ghost && inScale && (
+                {soloMode && soloShow && soloPcs.has(pc) && (
+                  <g pointerEvents="none">
+                    <circle cx={cx} cy={y} r={10.5} fill={pc === solo.root ? 'rgba(245,165,36,0.85)' : 'rgba(216,221,229,0.18)'} stroke={soloTones.has(pc) ? '#38bdf8' : 'rgba(216,221,229,0.35)'} strokeWidth={soloTones.has(pc) ? 2.2 : 1} />
+                    <text x={cx} y={y + 3.5} fontSize={9} fontWeight={600} textAnchor="middle" fill={pc === solo.root ? '#1a1203' : '#e9edf3'}>
+                      {soloLabel(pc)}
+                    </text>
+                  </g>
+                )}
+                {soloMode && flash && flash.si === si && flash.rel === rel && (
+                  <g pointerEvents="none" key={flash.key}>
+                    <circle className="pluck-ring" cx={cx} cy={y} r={13} fill="none" stroke="#fff" strokeWidth={2.5} />
+                    <circle cx={cx} cy={y} r={12} fill="url(#dot-tone)" style={{ animation: 'ring-fade 0.6s ease-out forwards' }} />
+                  </g>
+                )}
+                {!soloMode && showScale && !selected && !ghost && inScale && (
                   <circle cx={cx} cy={y} r={isTonic ? 7 : 5} fill={isTonic ? 'var(--accent)' : '#d8dde5'} opacity={isTonic ? 0.6 : 0.25} pointerEvents="none" />
                 )}
                 {ghost && !selected && (
