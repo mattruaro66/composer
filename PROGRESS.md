@@ -117,9 +117,14 @@
 - **Claude:** velocidade Rápido/Completo, tempo decorrido enquanto pensa, erro com código, "Tentar de novo" e "Tentar sem ferramentas", botão "Testar conexão", resposta só com propostas tratada como sucesso; o Claude também propõe solos com técnicas por nota
 
 ## Situação
-Todas as 9 fases concluídas + rodada de som/UX. 137 testes unitários + 13 testes E2E passando.
+Todas as 9 fases concluídas + rodada de som/UX. 141 testes unitários + 14 testes E2E passando.
 
 ## Evoluções sugeridas (pós-MVP)
 - Entrada por microfone (detecção de nota/acorde)
 - Linha de baixo e bateria automáticas
 - App nativo via Capacitor se o PWA não bastar no iOS
+
+## Rodada 5
+- Piano: seletor Teclado com 1 a 5 oitavas ou piano inteiro (88 teclas, A0–C8), ◀ ▶ por oitava, rolagem lateral;
+  voicings, solo e partitura usam a oitava central do teclado visível
+- Guia de funções (botão "? Guia" no topo, abre uma vez por versão) com atalhos para Solo, técnicas, piano, Claude e partitura

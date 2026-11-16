@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
-import { INSTRUMENTS, instrumentRange } from '../../instrument'
+import { INSTRUMENTS, instrumentRange, pianoMiddleOctave } from '../../instrument'
 import { analyzeChord, chroma, displayChord, keyScale, toMidi } from '../../theory'
 import { audio } from '../../audio'
 import { buildMeasures, BASE_DURATIONS } from '../../notation/measures'
@@ -38,7 +38,7 @@ export default function NotationPanel() {
   const instrumentId = useInstrument((s) => s.instrumentId)
   const tuningNames = useInstrument((s) => s.tuning)
   const capo = useInstrument((s) => s.capo)
-  const pianoOctave = useInstrument((s) => s.pianoOctave)
+  const pianoOctave = useInstrument((s) => pianoMiddleOctave(s.pianoSize, s.pianoOctave))
   const showScore = useModuleOption('notation', 'score')
   const showTab = useModuleOption('notation', 'tab')
   const didactic = useModuleEnabled('didactic')

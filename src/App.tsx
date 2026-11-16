@@ -9,6 +9,7 @@ import { SettingsDialog } from './ui/SettingsDialog'
 import { ProjectsDialog } from './ui/ProjectsDialog'
 import { Toaster } from './ui/Toaster'
 import { ClaudeWindow } from './ui/ClaudeWindow'
+import { GuideDialog } from './ui/GuideDialog'
 import { audio } from './audio'
 import { TopBar } from './ui/TopBar'
 import { TuningPanel } from './ui/TuningPanel'
@@ -109,6 +110,7 @@ export default function App() {
       <SettingsDialog />
       <ProjectsDialog />
       <ClaudeWindow />
+      <GuideDialog />
       <Toaster />
     </div>
   )

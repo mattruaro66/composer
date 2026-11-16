@@ -20,10 +20,11 @@ interface UiState {
   focusChord: string | null
   /** Claude window open, and a draft prompt to prefill. */
   aiOpen: boolean
+  guideOpen: boolean
   aiDraft: string | null
   setGhosts: (ghosts: GhostDot[], source?: string | null) => void
   clearGhosts: (source?: string) => void
-  set: (patch: Partial<Pick<UiState, 'tuningOpen' | 'settingsOpen' | 'projectsOpen' | 'playingChordIndex' | 'focusChord' | 'aiOpen' | 'aiDraft'>>) => void
+  set: (patch: Partial<Pick<UiState, 'tuningOpen' | 'settingsOpen' | 'projectsOpen' | 'playingChordIndex' | 'focusChord' | 'aiOpen' | 'aiDraft' | 'guideOpen'>>) => void
 }
 
 export const useUi = create<UiState>()((set) => ({
@@ -35,6 +36,7 @@ export const useUi = create<UiState>()((set) => ({
   playingChordIndex: null,
   focusChord: null,
   aiOpen: false,
+  guideOpen: false,
   aiDraft: null,
   setGhosts: (ghosts, source = null) => set({ ghosts, ghostSource: source }),
   clearGhosts: (source) => set((s) => (source && s.ghostSource !== source ? {} : { ghosts: [], ghostSource: null })),

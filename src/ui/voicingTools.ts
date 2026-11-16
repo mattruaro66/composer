@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { INSTRUMENTS, type StringState } from '../instrument'
+import { INSTRUMENTS, pianoMiddleOctave, type StringState } from '../instrument'
 import { chroma, fretVoicings, pianoVoicings, toMidi, type FretVoicing } from '../theory'
 import { audio } from '../audio'
 import { useInstrument } from '../store/instrument'
@@ -18,7 +18,7 @@ export function useVoicingContext(): VoicingContext {
   const instrumentId = useInstrument((s) => s.instrumentId)
   const tuning = useInstrument((s) => s.tuning)
   const capo = useInstrument((s) => s.capo)
-  const pianoOctave = useInstrument((s) => s.pianoOctave)
+  const pianoOctave = useInstrument((s) => pianoMiddleOctave(s.pianoSize, s.pianoOctave))
   const selection = useInstrument((s) => s.frets)
   return useMemo(() => {
     const def = INSTRUMENTS[instrumentId]

@@ -1,4 +1,4 @@
-import { INSTRUMENTS } from '../instrument'
+import { INSTRUMENTS, pianoMiddleOctave } from '../instrument'
 import type { ChordItem } from '../song/model'
 import { fretVoicings, pianoVoicings, toMidi } from '../theory'
 import { useInstrument } from '../store/instrument'
@@ -18,7 +18,7 @@ export function resolveVoicing(chord: ChordItem, previous?: number[]): ResolvedV
   const def = INSTRUMENTS[st.instrumentId]
   if (def.kind === 'piano') {
     if (chord.voicing?.midi?.length) return { midi: chord.voicing.midi, strings: chord.voicing.midi.map(() => null) }
-    const v = pianoVoicings(chord.symbol, st.pianoOctave)[0]
+    const v = pianoVoicings(chord.symbol, pianoMiddleOctave(st.pianoSize, st.pianoOctave))[0]
     return { midi: v?.midi ?? [], strings: (v?.midi ?? []).map(() => null) }
   }
   const tuning = st.tuning.map((n) => toMidi(n) ?? 40)

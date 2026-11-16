@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { INSTRUMENTS, instrumentRange } from '../instrument'
+import { INSTRUMENTS, instrumentRange, pianoMiddleOctave } from '../instrument'
 import { analyzeChord, chroma, fromMidi, toMidi } from '../theory'
 import { audio, getEngine } from '../audio'
 import { fingerNote } from '../notation/fingering'
@@ -38,7 +38,7 @@ export function SoloEditor() {
   const instrumentId = useInstrument((s) => s.instrumentId)
   const tuningNames = useInstrument((s) => s.tuning)
   const capo = useInstrument((s) => s.capo)
-  const pianoOctave = useInstrument((s) => s.pianoOctave)
+  const pianoOctave = useInstrument((s) => pianoMiddleOctave(s.pianoSize, s.pianoOctave))
   const setGhosts = useUi((s) => s.setGhosts)
   const clearGhosts = useUi((s) => s.clearGhosts)
   const fmt = useFormat()
@@ -159,7 +159,7 @@ export function SoloEditor() {
   handlers.current = (e: KeyboardEvent) => {
     if (isTyping(e.target) || e.ctrlKey || e.metaKey) return
     const ui = useUi.getState()
-    if (ui.settingsOpen || ui.projectsOpen || ui.aiOpen) return
+    if (ui.settingsOpen || ui.projectsOpen || ui.aiOpen || ui.guideOpen) return
     const k = e.key
     const go = (dir: 1 | -1, target: Parameters<typeof navigate>[2]) => {
       e.preventDefault()

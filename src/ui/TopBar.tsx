@@ -56,6 +56,9 @@ export function TopBar() {
 
       <div className="ml-auto flex items-center gap-1.5 lg:order-last">
         <AudioIndicator />
+        <button className="btn" onClick={() => setUi({ guideOpen: true })} title="Guia: onde está cada função" aria-label="Guia de funções" data-testid="guide-open">
+          ?<span className="hidden sm:inline"> Guia</span>
+        </button>
         <button
           className="btn"
           style={{ background: 'rgba(217,119,87,0.16)', boxShadow: 'inset 0 0 0 1px rgba(217,119,87,0.45)' }}

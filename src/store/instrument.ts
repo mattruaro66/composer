@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import {
   INSTRUMENTS,
+  maxStartOctave,
+  type PianoSize,
   defaultTuning,
   shiftString,
   toggleFret,
@@ -23,6 +25,8 @@ interface InstrumentState {
   tuning: string[]
   capo: number
   pianoOctave: number
+  pianoSize: PianoSize
+  setPianoSize: (size: PianoSize) => void
   customTunings: CustomTuning[]
   frets: StringState[]
   pianoKeys: number[]
@@ -53,7 +57,9 @@ export const useInstrument = create<InstrumentState>()(
       instrumentId: 'acoustic',
       tuning: defaultTuning('acoustic'),
       capo: 0,
-      pianoOctave: 4,
+      pianoOctave: 3,
+      pianoSize: '3',
+      setPianoSize: (pianoSize) => set((s) => ({ pianoSize, pianoOctave: Math.min(s.pianoOctave, maxStartOctave(pianoSize)) })),
       customTunings: [],
       frets: emptyFrets('acoustic'),
       pianoKeys: [],
@@ -78,7 +84,7 @@ export const useInstrument = create<InstrumentState>()(
         set((s) => ({ tuning: s.tuning.map((n, i) => (i === index ? shiftString(n, semitones) : n)) })),
       setStringNote: (index, note) => set((s) => ({ tuning: s.tuning.map((n, i) => (i === index ? note : n)) })),
       setCapo: (capo) => set({ capo: Math.max(0, Math.min(12, capo)) }),
-      setPianoOctave: (o) => set({ pianoOctave: Math.max(1, Math.min(7, o)), pianoKeys: [] }),
+      setPianoOctave: (o) => set((s) => ({ pianoOctave: Math.max(1, Math.min(maxStartOctave(s.pianoSize), o)) })),
       saveCustomTuning: (name) =>
         set((s) => ({
           customTunings: [
@@ -95,6 +101,6 @@ export const useInstrument = create<InstrumentState>()(
       setKeys: (keys) => set({ pianoKeys: [...keys] }),
       clearSelection: () => set((s) => ({ frets: emptyFrets(s.instrumentId), pianoKeys: [] })),
     }),
-    { name: 'composer.instrument', storage: safeStorage, version: 1 },
+    { name: 'composer.instrument', storage: safeStorage, version: 2, migrate: (st, v) => (v < 2 ? { ...(st as object), pianoSize: '3', pianoOctave: 3 } : st) as InstrumentState },
   ),
 )
