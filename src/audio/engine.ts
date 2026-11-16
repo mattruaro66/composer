@@ -18,6 +18,7 @@ const MAX_SHIFT = 5
 
 interface Voice {
   src: AudioBufferSourceNode
+  vibrato?: OscillatorNode
   filter: BiquadFilterNode
   gain: GainNode
   sampleMidi: number
@@ -248,6 +249,7 @@ export class AudioEngine {
     g.setTargetAtTime(0, t, Math.max(0.006, release / 4))
     try {
       v.src.stop(t + release * 1.5 + 0.05)
+      v.vibrato?.stop(t + release * 1.5 + 0.05)
     } catch {
       /* already stopped */
     }
@@ -284,17 +286,44 @@ export class AudioEngine {
     filter.type = 'lowpass'
     filter.Q.value = 0.4
     // Softer notes are darker, like a real string.
-    filter.frequency.value = opts.palmMute ? 750 : harmonic ? 9000 : 1800 + 16000 * Math.pow(velocity, 1.6)
+    filter.frequency.value = opts.palmMute ? 750 : harmonic ? 9000 : opts.tap ? 7000 + 6000 * velocity : 1800 + 16000 * Math.pow(velocity, 1.6)
     const gain = this.ctx.createGain()
-    const amp = Math.pow(velocity, 1.3) * (opts.legato ? 0.5 : 1) * (harmonic ? 0.8 : 1)
+    const amp = Math.pow(velocity, 1.3) * (opts.legato ? 0.5 : 1) * (harmonic ? 0.8 : 1) * (opts.tap ? 0.62 : 1)
     const g = gain.gain
     g.setValueAtTime(0, time)
     g.linearRampToValueAtTime(amp, time + (harmonic ? 0.006 : 0.003))
     const tau = opts.palmMute ? 0.09 : sustainTau(sound.sustain)
     if (tau !== null) g.setTargetAtTime(0, time + (opts.palmMute ? 0.02 : 0.12), tau)
     src.connect(filter).connect(gain).connect(this.inputNode)
+    // Bend: push the string up by N semitones, hold, and optionally let it come back.
+    if (opts.bend && opts.bend.semis > 0) {
+      const d = src.detune
+      const rise = opts.bend.rise ?? 0.11
+      const startBend = time + 0.035
+      d.setValueAtTime(0, time)
+      d.setValueAtTime(0, startBend)
+      d.linearRampToValueAtTime(opts.bend.semis * 100, startBend + rise)
+      if (opts.bend.release) {
+        d.setValueAtTime(opts.bend.semis * 100, startBend + rise + opts.bend.hold)
+        d.linearRampToValueAtTime(0, startBend + rise + opts.bend.hold + rise * 1.2)
+      }
+    }
+    // Vibrato: a slow pitch wobble that fades in (a sustained bend gets it too, as players do).
+    let vib: OscillatorNode | undefined
+    if (opts.vibrato) {
+      vib = this.ctx.createOscillator()
+      vib.frequency.value = 5.6
+      const depth = this.ctx.createGain()
+      const vStart = time + (opts.bend ? 0.035 + (opts.bend.rise ?? 0.11) : 0.12)
+      depth.gain.setValueAtTime(0, time)
+      depth.gain.setValueAtTime(0, vStart)
+      depth.gain.linearRampToValueAtTime(opts.bend ? 30 : 38, vStart + 0.35)
+      vib.connect(depth).connect(src.detune)
+      vib.start(time)
+      vib.stop(time + buffer.duration / Math.max(0.25, src.playbackRate.value) + 0.1)
+    }
     src.start(time)
-    const voice: Voice = { src, filter, gain, sampleMidi: root, cents, start: time, stringIndex: opts.stringIndex ?? null }
+    const voice: Voice = { src, vibrato: vib, filter, gain, sampleMidi: root, cents, start: time, stringIndex: opts.stringIndex ?? null }
     this.voices.set(key, voice)
     src.onended = () => {
       if (this.voices.get(key) === voice) this.voices.delete(key)
@@ -313,6 +342,7 @@ export class AudioEngine {
     g.setTargetAtTime(0, time, Math.max(0.006, release / 4))
     try {
       voice.src.stop(time + release * 1.5 + 0.05)
+      voice.vibrato?.stop(time + release * 1.5 + 0.05)
     } catch {
       /* noop */
     }

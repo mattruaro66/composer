@@ -9,12 +9,16 @@ export interface ProposedChord {
   symbol: string
   beats: number
 }
+export type ProposedTechnique = 'hammer' | 'pull' | 'slide' | 'bend' | 'tap' | 'vibrato' | 'palmMute'
 export interface ProposedNote {
   midi: number
   /** Ticks from the section start. */
   start: number
   duration: number
+  technique?: ProposedTechnique
+  bend?: { semis: number; hold: number; release: boolean }
 }
+const TECHNIQUES: ProposedTechnique[] = ['hammer', 'pull', 'slide', 'bend', 'tap', 'vibrato', 'palmMute']
 
 export type Proposal =
   | { kind: 'progression'; id: string; section: string; newSection: boolean; key?: Key; chords: ProposedChord[]; explanation: string }
@@ -78,6 +82,10 @@ export const AI_TOOLS = [
               pitch: { type: 'string', description: 'Ex.: E4, F#4, Bb3.' },
               start_beat: { type: 'number', minimum: 0, description: 'Início em semínimas a partir do começo da seção (0 = primeiro tempo).' },
               beats: { type: 'number', exclusiveMinimum: 0, maximum: 16, description: 'Duração em semínimas (0.5 = colcheia, 0.25 = semicolcheia).' },
+              technique: { type: 'string', enum: ['hammer', 'pull', 'slide', 'bend', 'tap', 'vibrato', 'palmMute'], description: 'Opcional. hammer/pull/slide ligam à nota anterior na mesma corda; bend sobe a nota tocada.' },
+              bend_semitones: { type: 'integer', minimum: 1, maximum: 4, description: 'Só com bend: 1 = ½ tom, 2 = 1 tom, 3 = 1½, 4 = 2 tons. pitch é a nota tocada (antes do bend).' },
+              bend_hold_beats: { type: 'number', minimum: 0, maximum: 8, description: 'Só com bend: quanto tempo segurar o bend (semínimas).' },
+              bend_release: { type: 'boolean', description: 'Só com bend: voltar à nota original depois de segurar.' },
             },
             required: ['pitch', 'start_beat', 'beats'],
           },
@@ -194,7 +202,10 @@ export function validateProposal(name: string, input: unknown): { ok: true; prop
         if (midi === null || midi < 24 || midi > 108) return errors.push(`nota ${i + 1}: altura "${String(n.pitch)}" inválida`)
         if (!Number.isFinite(start) || start < 0) return errors.push(`nota ${i + 1}: start_beat inválido`)
         if (!Number.isFinite(beats) || beats <= 0 || beats > 16) return errors.push(`nota ${i + 1}: beats inválido`)
-        notes.push({ midi, start: Math.round(start * PPQ), duration: Math.max(30, Math.round(beats * PPQ)) })
+        const technique = TECHNIQUES.includes(n.technique as ProposedTechnique) ? (n.technique as ProposedTechnique) : undefined
+        const semis = Math.round(Number(n.bend_semitones))
+        const bend = technique === 'bend' ? { semis: semis >= 1 && semis <= 4 ? semis : 2, hold: Math.round(Math.max(0, Math.min(8, Number(n.bend_hold_beats) || 1)) * PPQ), release: n.bend_release === true } : undefined
+        notes.push({ midi, start: Math.round(start * PPQ), duration: Math.max(30, Math.round(beats * PPQ)), technique, bend })
       })
       if (errors.length) return { ok: false, errors }
       return { ok: true, proposal: { kind: 'melody', id, section, mode: input.mode === 'append' ? 'append' : 'replace', notes: notes.sort((a, b) => a.start - b.start), explanation } }
@@ -275,7 +286,7 @@ export function applyProposal(song: Song, _activeSectionId: string, p: Proposal,
         form = [...form, target.id]
       }
       const offset = p.mode === 'append' ? target.notes.reduce((mx, n) => Math.max(mx, n.start + n.duration), 0) : 0
-      const notes: NoteEvent[] = p.notes.map((n) => ({ id: uid('n'), midi: n.midi, start: n.start + offset, duration: n.duration, ...(finger?.(n.midi) ?? {}) }))
+      const notes: NoteEvent[] = p.notes.map((n) => ({ id: uid('n'), midi: n.midi, start: n.start + offset, duration: n.duration, technique: n.technique, bend: n.bend, ...(finger?.(n.midi) ?? {}) }))
       const merged = p.mode === 'append' ? [...target.notes, ...notes] : notes
       const id = target.id
       sections = sections.map((s) => (s.id === id ? { ...s, notes: merged.sort((a, b) => a.start - b.start) } : s))

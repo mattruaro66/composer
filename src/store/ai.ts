@@ -10,15 +10,21 @@ export interface ChatMessage {
   text: string
   proposals: Proposal[]
   error?: string
+  errorCode?: string
   pending?: boolean
+  /** When the request was sent (ms), to show elapsed time. */
+  startedAt?: number
+  /** The request text, so a failed reply can be retried. */
+  request?: string
 }
 
 interface AiState {
   apiKey: string
+  speed: 'quick' | 'full'
   messages: ChatMessage[]
   /** proposal id → song snapshot before it was applied (for "Desfazer"). */
   applied: Record<string, Song>
-  set: (patch: Partial<Pick<AiState, 'apiKey' | 'messages' | 'applied'>>) => void
+  set: (patch: Partial<Pick<AiState, 'apiKey' | 'messages' | 'applied' | 'speed'>>) => void
   update: (id: string, patch: Partial<ChatMessage>) => void
   clear: () => void
 }
@@ -27,6 +33,7 @@ export const useAi = create<AiState>()(
   persist(
     (set) => ({
       apiKey: '',
+      speed: 'quick',
       messages: [],
       applied: {},
       set: (patch) => set(patch),
@@ -38,7 +45,7 @@ export const useAi = create<AiState>()(
       storage: safeStorage,
       version: 1,
       // Keep the last 40 messages; never persist a half-finished answer as pending.
-      partialize: (s) => ({ apiKey: s.apiKey, messages: s.messages.slice(-40).map((m) => ({ ...m, pending: false })), applied: s.applied }),
+      partialize: (s) => ({ apiKey: s.apiKey, speed: s.speed, messages: s.messages.slice(-40).map((m) => ({ ...m, pending: false })), applied: s.applied }),
     },
   ),
 )

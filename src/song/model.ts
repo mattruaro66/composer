@@ -10,7 +10,14 @@ export interface TimeSig {
   grouping: number[]
 }
 
-export type Technique = 'hammer' | 'pull' | 'slide' | 'harmonic' | 'artificialHarmonic' | 'palmMute'
+export type Technique = 'hammer' | 'pull' | 'slide' | 'harmonic' | 'artificialHarmonic' | 'palmMute' | 'bend' | 'tap' | 'vibrato'
+
+/** A string bend: how far (semitones: 1 = ½ tom, 2 = 1 tom, 3 = 1½, 4 = 2 tons), how long it is held (ticks) and whether it returns. */
+export interface BendSpec {
+  semis: number
+  hold: number
+  release: boolean
+}
 
 export interface Voicing {
   /** Per-string state when the voicing was captured on a string instrument. */
@@ -42,6 +49,8 @@ export interface NoteEvent {
   string?: number
   fret?: number
   technique?: Technique
+  /** Bend parameters when technique = 'bend'. */
+  bend?: BendSpec
   /** Tied to the next note. */
   tie?: boolean
   /** Tuplet ratio, e.g. 3 for triplets. */

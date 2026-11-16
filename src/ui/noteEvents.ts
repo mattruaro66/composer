@@ -1,4 +1,4 @@
-import type { Technique } from '../song/model'
+import type { BendSpec, Technique } from '../song/model'
 
 /** A note played on the instrument UI (used by notation recording). */
 export interface PlayedNote {
@@ -6,6 +6,7 @@ export interface PlayedNote {
   stringIndex: number | null
   fret: number | null
   technique?: Technique
+  bend?: BendSpec
 }
 
 type Listener = (n: PlayedNote) => void

@@ -25,6 +25,10 @@ export interface RunOptions {
   onText: (fullText: string) => void
   onProposal: (p: Proposal) => void
   signal: AbortSignal
+  /** 'quick' answers fast; 'full' thinks more (slower, more elaborate). */
+  speed?: 'quick' | 'full'
+  /** Ask for a plain-text answer (no proposal tools). */
+  noTools?: boolean
 }
 
 export class AiError extends Error {
@@ -73,11 +77,22 @@ const SAMPLE_MESSAGES: Record<string, string> = {
   refused: 'O Claude não respondeu a esse pedido. Tente reformular.',
   prompt_too_large: 'A música ficou grande demais para enviar inteira. Limpe a conversa ou peça algo mais específico.',
   cancelled: 'Parado.',
+  empty_completion: 'O Claude não escreveu nada. Tente pedir de outro jeito.',
+  tools_unavailable: 'Este visualizador não permite propostas: tente “sem ferramentas”.',
+  invalid_request: 'O pedido não foi aceito pelo claude.ai. Tente “sem ferramentas”.',
+  upstream_error: 'Falha temporária no Claude. Tente de novo em instantes.',
+  capability_disabled: 'O Claude está desativado nesta visualização.',
+  not_declared: 'Esta versão da página não tem acesso ao Claude.',
 }
 
 async function runWithSample(sample: SampleFn, o: RunOptions): Promise<string> {
+  let proposals = 0
+  const onProposal = (p: Proposal) => {
+    proposals++
+    o.onProposal(p)
+  }
   const limits = await sample.limits().catch(() => null)
-  const tools: SampleTool[] | undefined = limits?.tools
+  const tools: SampleTool[] | undefined = limits?.tools && !o.noTools
     ? AI_TOOLS.slice(0, limits.tools.maxCount).map((t) => ({
         name: t.name,
         description: t.description,
@@ -85,7 +100,7 @@ async function runWithSample(sample: SampleFn, o: RunOptions): Promise<string> {
         execute: (input) => {
           const r = validateProposal(t.name, input)
           if (!r.ok) throw new Error(`Entrada inválida: ${r.errors.join('; ')}. Corrija e chame a ferramenta de novo.`)
-          o.onProposal(r.proposal)
+          onProposal(r.proposal)
           return SHOWN
         },
       }))
@@ -97,10 +112,13 @@ async function runWithSample(sample: SampleFn, o: RunOptions): Promise<string> {
     { role: 'user', content: `Estado atual da música:\n${o.context}\n\nPedido: ${o.request}` },
   ]
   try {
-    const { text } = await sample(input, { tools, signal: o.signal, onText: ({ text }: { text: string }) => o.onText(text), modelTier: 'default', ...(tools ? {} : { cache: false }) })
+    const { text } = await sample(input, { tools, signal: o.signal, onText: ({ text }: { text: string }) => o.onText(text), modelTier: o.speed === 'full' ? 'default' : 'quick', ...(tools ? {} : { cache: false }) })
     return text
   } catch (e) {
     const err = e as { code?: string; message?: string; text?: string }
+    console.warn('[claude] sample failed', err?.code, err?.message)
+    // Proposals arrived but no prose: that is a valid answer.
+    if (err.code === 'empty_completion' && proposals > 0) return ''
     throw new AiError(SAMPLE_MESSAGES[err.code ?? ''] ?? 'O Claude não conseguiu responder agora. Tente de novo.', err.code ?? 'upstream_error', err.text)
   }
 }
@@ -131,8 +149,8 @@ async function runWithApi(apiKey: string, o: RunOptions): Promise<string> {
           max_tokens: 64000,
           system: SYSTEM_PROMPT,
           messages,
-          tools,
-          output_config: { effort: 'medium' },
+          ...(o.noTools ? {} : { tools }),
+          output_config: { effort: o.speed === 'full' ? 'medium' : 'low' },
           betas: ['server-side-fallback-2026-07-01'],
           fallbacks: 'default',
         },
@@ -192,4 +210,40 @@ export async function runClaude(kind: ProviderKind, apiKey: string | null, o: Ru
   }
   if (!apiKey) throw new AiError('Informe sua chave da API do Claude para conversar.', 'no_key')
   return runWithApi(apiKey, o)
+}
+
+/** Minimal round trip to check the connection; resolves with the elapsed seconds. */
+export async function testConnection(kind: ProviderKind, apiKey: string | null): Promise<number> {
+  const t0 = performance.now()
+  if (kind === 'claude-app') {
+    const sample = await getSample()
+    if (!sample) throw new AiError('O claude.ai não liberou o Claude para esta página.', 'unavailable')
+    try {
+      await sample([{ role: 'user', content: 'Responda apenas com a palavra: ok' }], { modelTier: 'quick', cache: false })
+    } catch (e) {
+      const err = e as { code?: string; message?: string }
+      console.warn('[claude] test failed', err?.code, err?.message)
+      throw new AiError(SAMPLE_MESSAGES[err.code ?? ''] ?? 'O Claude não respondeu ao teste.', err.code ?? 'upstream_error')
+    }
+  } else {
+    if (!apiKey) throw new AiError('Informe sua chave da API do Claude.', 'no_key')
+    const { default: AnthropicSDK } = await import('@anthropic-ai/sdk')
+    const client = new AnthropicSDK({ apiKey, dangerouslyAllowBrowser: true })
+    try {
+      await client.messages.create({ model: 'claude-opus-5-5', max_tokens: 1024, output_config: { effort: 'low' }, messages: [{ role: 'user', content: 'Responda apenas com a palavra: ok' }] })
+    } catch (err) {
+      if (err instanceof AnthropicSDK.AuthenticationError) throw new AiError('Chave de API inválida.', 'auth')
+      if (err instanceof AnthropicSDK.PermissionDeniedError) throw new AiError('A chave não tem permissão para o modelo.', 'permission')
+      if (err instanceof AnthropicSDK.RateLimitError) throw new AiError('Limite de uso atingido.', 'rate_limited')
+      if (err instanceof AnthropicSDK.APIConnectionError) throw new AiError('Sem conexão com a API do Claude.', 'connection')
+      if (err instanceof AnthropicSDK.APIError) throw new AiError(`Erro da API (${err.status ?? '?'}).`, 'api')
+      throw new AiError('Falha no teste de conexão.', 'unknown')
+    }
+  }
+  return (performance.now() - t0) / 1000
+}
+
+/** Whether the page runs inside a claude.ai viewer (window.claude exists). */
+export function insideClaudeViewer(): boolean {
+  return typeof (window as unknown as { claude?: unknown }).claude !== 'undefined'
 }

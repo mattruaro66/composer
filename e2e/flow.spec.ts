@@ -171,6 +171,57 @@ test('modo solo: notas soltas com escala no braço e gravação passo a passo', 
   await expect(page.getByTestId('strum-pad').first()).toBeAttached()
 })
 
+test('Esc para a progressão; Base desligada não toca acordes', async ({ page }) => {
+  await fresh(page)
+  for (const [s, f] of [[1, 3], [2, 2], [4, 1]]) await page.getByTestId(`fret-${s}-${f}`).click()
+  await page.getByTestId('string-marker-3').click()
+  await page.getByTestId('add-to-progression').click()
+  await page.getByTestId('top-play').click()
+  await expect(page.getByTestId('top-stop')).toBeEnabled()
+  await page.keyboard.press('Escape')
+  await expect(page.getByTestId('top-stop')).toBeDisabled()
+  // With the backing off and no melody/metronome there is nothing to play
+  await page.getByTestId('play-base').click()
+  await expect(page.getByTestId('play-base')).toHaveAttribute('aria-pressed', 'false')
+  await expect(page.getByTestId('top-play')).toBeDisabled()
+  await page.getByTestId('play-base').click()
+  await expect(page.getByTestId('top-play')).toBeEnabled()
+})
+
+test('editor de solo: atalhos, sugestões teóricas e bend na tablatura', async ({ page }) => {
+  await fresh(page)
+  for (const [s, f] of [[1, 3], [2, 2], [4, 1]]) await page.getByTestId(`fret-${s}-${f}`).click()
+  await page.getByTestId('string-marker-3').click()
+  await page.getByTestId('add-to-progression').click()
+  await page.getByTestId('mode-solo').click()
+  await expect(page.getByTestId('solo-suggestions')).toContainText('de C')
+  await expect(page.getByTestId('solo-position')).toContainText('Compasso 1 · tempo 1')
+  // Insert suggestions with number keys; the cursor moves by the step (1/8)
+  await page.locator('body').click({ position: { x: 5, y: 5 } })
+  await page.keyboard.press('1')
+  await page.keyboard.press('2')
+  await expect(page.getByTestId('solo-bar')).toContainText('2 notas')
+  await expect(page.getByTestId('solo-position')).toContainText('tempo 2')
+  // Bend: B selects it, B again cycles the size
+  await page.keyboard.press('b')
+  await expect(page.getByTestId('tech-bend')).toHaveAttribute('aria-checked', 'true')
+  await page.keyboard.press('b')
+  await expect(page.getByTestId('bend-3')).toHaveAttribute('aria-pressed', 'true')
+  await page.keyboard.press('1')
+  // Navigation: Home, then → to the next note, Shift+→ to the next bar
+  await page.keyboard.press('Home')
+  await expect(page.getByTestId('solo-position')).toContainText('tempo 1')
+  await page.keyboard.press('ArrowRight')
+  await expect(page.getByTestId('solo-position')).toContainText('tempo 1.5')
+  await page.keyboard.press('Shift+ArrowRight')
+  await expect(page.getByTestId('solo-position')).toContainText('Compasso 2')
+  // The bend shows in the tablature
+  await openSettingsTab(page, 'Módulos')
+  await page.getByTestId('module-toggle-notation').check()
+  await closeSettings(page)
+  await expect(page.getByTestId('notation-canvas')).toContainText('↑1½')
+})
+
 test('recarregar preserva projeto, afinação, BPM e layout', async ({ page }) => {
   await fresh(page)
   await page.getByTestId('tuning-toggle').click()

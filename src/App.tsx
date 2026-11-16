@@ -51,7 +51,14 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
       if (e.key === 'Escape' && !useUi.getState().settingsOpen && !useUi.getState().projectsOpen && !useUi.getState().aiOpen) {
+        // Esc stops everything: the progression and every ringing string.
+        void transport.stop()
         audio.damp()
+        return
+      }
+      if (e.code === 'Space' && e.shiftKey && !/INPUT|SELECT|TEXTAREA/.test(t.tagName)) {
+        e.preventDefault()
+        void transport.stop()
         return
       }
       if (e.code !== 'Space' || /INPUT|SELECT|TEXTAREA|BUTTON/.test(t.tagName) || t.isContentEditable) return

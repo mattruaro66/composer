@@ -59,7 +59,7 @@ test('Claude pela API (SDK oficial): streaming, ferramenta, proposta, aplicar e 
   await expect(page.getByTestId('proposal-progression')).toContainText('F7M')
 
   // The request follows the API guidance
-  expect(bodies[0]).toMatchObject({ model: 'claude-opus-5-5', fallbacks: 'default', output_config: { effort: 'medium' } })
+  expect(bodies[0]).toMatchObject({ model: 'claude-opus-5-5', fallbacks: 'default', output_config: { effort: 'low' } }) // default speed: Rápido
   expect((bodies[0]!.tools as { eager_input_streaming?: boolean }[]).every((t) => t.eager_input_streaming === true)).toBe(true)
   // SDK 1.x sends the API key as a bearer token.
   expect(headers[0]!['authorization']).toBe('Bearer sk-ant-test-key')
@@ -113,4 +113,31 @@ test('Claude no link do claude.ai (capacidade sample): ferramentas da página vi
   await page.getByTestId('claude-window').getByRole('button', { name: 'Fechar' }).click()
   await page.getByTestId('mode-solo').click()
   await expect(page.getByTestId('solo-bar')).toContainText('3 notas')
+})
+
+test('Claude: erro mostra o código, tentar sem ferramentas e testar conexão', async ({ page }) => {
+  await page.addInitScript(() => {
+    let calls = 0
+    const sample = Object.assign(
+      async (_input: unknown, opts: { tools?: unknown[]; onText?: (u: { text: string; delta: string }) => void }) => {
+        calls++
+        if (opts.tools) throw { code: 'upstream_error', message: 'boom' }
+        const text = calls > 0 ? 'ok' : ''
+        opts.onText?.({ text, delta: text })
+        return { text, truncated: false }
+      },
+      { limits: async () => ({ maxPromptBytes: 262144, tools: { maxCount: 8 } }) },
+    )
+    ;(window as unknown as { claude: unknown }).claude = { use: async (name: string) => (name === 'sample' ? sample : null) }
+  })
+  await fresh(page)
+  await page.getByTestId('claude-open').click()
+  await expect(page.getByTestId('claude-provider')).toContainText('sua conta do Claude')
+  await page.getByTestId('claude-test').click()
+  await expect(page.getByTestId('claude-test-result')).toContainText('Conexão OK')
+  await page.getByTestId('claude-input').fill('Crie um solo')
+  await page.getByTestId('claude-send').click()
+  await expect(page.getByTestId('claude-error')).toContainText('upstream_error')
+  await page.getByTestId('claude-retry-plain').click()
+  await expect(page.getByTestId('claude-reply').last()).toContainText('ok')
 })

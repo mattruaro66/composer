@@ -109,8 +109,15 @@
 - Letra por seção (campo no painel Estrutura; vai junto na exportação de cifra)
 - Testes: validação/aplicação de propostas (unitários) e os dois caminhos ponta a ponta com respostas simuladas (sem gastar chamadas reais)
 
+## Rodada 4 — Controle de reprodução, editor de solo, técnicas e IA ✅
+- **O que toca no ▶:** chaves independentes Base (acordes), Melodia e Metrônomo no topo, valendo durante a reprodução; desligar tudo para o transporte. **Esc para tudo** (progressão + cordas); Shift+Espaço também para. "Gravar sobre a base" virou liga/desliga (parar a base encerra a gravação)
+- **Editor de solo** (modo Solo): rolo de notas com compassos, acordes e cursor; atalhos ← → (nota), Shift+← → (compasso), [ ] (frase), Home/End, 1–5 (inserir sugestão no cursor), ↑ ↓ (nota na escala; Alt = ½ tom), ⌫ (apagar), , . (duração), Enter (ouvir a frase); gravação passo a passo escreve no cursor
+- **Sugestões teóricas da próxima nota** no cursor: papel no acorde (fundamental/3ª/5ª/7ª), grau no tom, movimento (grau conjunto, salto e qual intervalo), resoluções 7→1 e 4→3, tensão vs. passagem, tempo forte/fraco; numeradas no braço e no rolo; registro preferido evita a melodia "escorregar" para os extremos (`song/soloNav.ts`, `suggest/melodyExplain.ts`, com testes)
+- **Técnicas** (modo Solo, teclas H P S B T V M N): hammer-on, pull-off, slide (sem novo ataque), bend de ½, 1, 1½ e 2 tons com sustentação por tempo definido e volta opcional (vibrato automático em bends longos), tapping, vibrato, palm mute — no som (automação de afinação por voz), na gravação, na tablatura (↑½, ↑full, ↑1½, ↑2, ↓, T, ~~) e no playback. Bend conferido gravando o áudio: sobe 2 semitons em ~0,1 s, segura e volta no tempo configurado
+- **Claude:** velocidade Rápido/Completo, tempo decorrido enquanto pensa, erro com código, "Tentar de novo" e "Tentar sem ferramentas", botão "Testar conexão", resposta só com propostas tratada como sucesso; o Claude também propõe solos com técnicas por nota
+
 ## Situação
-Todas as 9 fases concluídas + rodada de som/UX. 128 testes unitários + 10 testes E2E passando.
+Todas as 9 fases concluídas + rodada de som/UX. 137 testes unitários + 13 testes E2E passando.
 
 ## Evoluções sugeridas (pós-MVP)
 - Entrada por microfone (detecção de nota/acorde)

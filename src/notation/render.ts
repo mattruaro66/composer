@@ -77,7 +77,13 @@ export interface RenderResult {
   measures: MeasureGeometry[]
 }
 
-const TECH_LABEL: Record<string, string> = { hammer: 'H', pull: 'P', slide: 'sl.', harmonic: 'Harm.', artificialHarmonic: 'A.H.', palmMute: 'P.M.' }
+const TECH_LABEL: Record<string, string> = { hammer: 'H', pull: 'P', slide: 'sl.', harmonic: 'Harm.', artificialHarmonic: 'A.H.', palmMute: 'P.M.', tap: 'T', vibrato: '~~' }
+const BEND_TEXT: Record<number, string> = { 1: '½', 2: 'full', 3: '1½', 4: '2' }
+/** Tab label for a note's technique (bends show their size, ↓ when released). */
+export function techniqueLabel(n: { technique?: string; bend?: { semis: number; release: boolean } }): string | null {
+  if (n.technique === 'bend' && n.bend) return `↑${BEND_TEXT[n.bend.semis] ?? n.bend.semis}${n.bend.release ? '↓' : ''}`
+  return n.technique ? (TECH_LABEL[n.technique] ?? null) : null
+}
 
 function durString(item: MeasureItem): string {
   return item.dur.vf + 'd'.repeat(item.dur.dots) + (item.rest ? 'r' : '')
@@ -215,8 +221,9 @@ export function renderNotation(el: HTMLDivElement, input: RenderInput): RenderRe
               positions: positioned.map((n) => ({ str: input.stringCount - (n.string ?? 0), fret: input.invalidIds.has(n.id) ? 'X' : (n.fret ?? 0) })),
               duration: item.dur.vf + 'd'.repeat(item.dur.dots),
             })
-            const tech = positioned.find((n) => n.technique)?.technique
-            if (tech && TECH_LABEL[tech]) tn.addModifier(new Annotation(TECH_LABEL[tech]!).setVerticalJustification(AnnotationVerticalJustify.TOP), 0)
+            const techNote = positioned.find((n) => n.technique)
+            const label = techNote ? techniqueLabel(techNote) : null
+            if (label) tn.addModifier(new Annotation(label).setVerticalJustification(AnnotationVerticalJustify.TOP), 0)
             if (positioned.some((n) => n.id === input.selectedId)) tn.setStyle({ fillStyle: '#0284c7', strokeStyle: '#0284c7' })
             if (positioned.some((n) => input.invalidIds.has(n.id))) tn.setStyle({ fillStyle: '#ef4444', strokeStyle: '#ef4444' })
             tabNotes.push(tn)

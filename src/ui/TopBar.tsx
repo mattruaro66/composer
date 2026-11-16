@@ -32,8 +32,9 @@ export function TopBar() {
   const def = INSTRUMENTS[instrumentId]
   const preset = matchTuningPreset(instrumentId, tuning)
   const metronome = useModuleOption('transport', 'metronome')
-  const setOption = useSettings((s) => s.setOption)
-  const canPlay = (section?.chords.length ?? 0) > 0 || (section?.notes.length ?? 0) > 0 || metronome
+  const base = useModuleOption('transport', 'base')
+  const melody = useModuleOption('transport', 'melody')
+  const canPlay = (base && (section?.chords.length ?? 0) > 0) || (melody && (section?.notes.length ?? 0) > 0) || metronome
 
   return (
     <header
@@ -122,21 +123,11 @@ export function TopBar() {
           >
             {status === 'playing' ? '❚❚' : '▶'}
           </button>
-          <button className="btn w-9 px-0" onClick={() => void transport.stop()} disabled={status === 'stopped'} aria-label="Parar">
+          <button className="btn w-9 px-0" onClick={() => void transport.stop()} disabled={status === 'stopped'} aria-label="Parar" title="Parar (Esc)" data-testid="top-stop">
             ■
           </button>
           <TempoControls />
-          <button
-            className={`btn px-2.5 ${metronome ? 'btn-active' : ''}`}
-            aria-pressed={metronome}
-            onClick={() => setOption('transport', 'metronome', !metronome)}
-            title={metronome ? 'Metrônomo ligado: clique para desligar' : 'Ligar o metrônomo (funciona sozinho, sem acordes)'}
-            data-testid="metronome-top"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M8 3h8l4 18H4L8 3z" /><path d="M12 16l5-9" /></svg>
-            <span className="hidden sm:inline">Metrônomo</span>
-            <span className={`h-1.5 w-1.5 rounded-full ${metronome ? 'bg-sky-300' : 'bg-[var(--faint)]'}`} />
-          </button>
+          <PlaySwitches />
         </div>
 
         {def.kind === 'strings' && (
@@ -147,5 +138,38 @@ export function TopBar() {
         )}
       </div>
     </header>
+  )
+}
+
+/** What ▶ plays: chord backing, melody/solo and metronome — each switchable, live. */
+function PlaySwitches() {
+  const setOption = useSettings((s) => s.setOption)
+  const items = [
+    { id: 'base', label: 'Base', title: 'Acordes da progressão' },
+    { id: 'melody', label: 'Melodia', title: 'Melodia / solo gravado' },
+    { id: 'metronome', label: 'Metrônomo', title: 'Clique do metrônomo (funciona sozinho)' },
+  ] as const
+  return (
+    <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ background: 'var(--surface-2)' }} role="group" aria-label="O que tocar">
+      {items.map((it) => (
+        <Switch key={it.id} id={it.id} label={it.label} title={it.title} onToggle={(v) => setOption('transport', it.id, v)} />
+      ))}
+    </div>
+  )
+}
+
+function Switch({ id, label, title, onToggle }: { id: 'base' | 'melody' | 'metronome'; label: string; title: string; onToggle: (v: boolean) => void }) {
+  const on = useModuleOption('transport', id)
+  return (
+    <button
+      className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition ${on ? 'bg-[var(--surface-3)] text-[var(--fg)]' : 'text-[var(--faint)] hover:text-[var(--muted)]'}`}
+      aria-pressed={on}
+      onClick={() => onToggle(!on)}
+      title={`${title}: ${on ? 'ligado (clique para desligar)' : 'desligado (clique para ligar)'}`}
+      data-testid={id === 'metronome' ? 'metronome-top' : `play-${id}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${on ? 'bg-emerald-400' : 'bg-[var(--faint)]'}`} />
+      {label}
+    </button>
   )
 }

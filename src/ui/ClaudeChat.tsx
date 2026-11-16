@@ -7,7 +7,7 @@ import { PPQ, sectionBpm } from '../song/model'
 import { fingerNote } from '../notation/fingering'
 import { songContext } from '../ai/context'
 import { applyProposal, describeProposal, type Proposal } from '../ai/proposals'
-import { AiError, getSample, runClaude, type ProviderKind } from '../ai/provider'
+import { AiError, getSample, insideClaudeViewer, runClaude, testConnection, type ProviderKind } from '../ai/provider'
 import { useAi, type ChatMessage } from '../store/ai'
 import { useInstrument } from '../store/instrument'
 import { useSong } from '../store/song'
@@ -65,7 +65,21 @@ export function ClaudeChat() {
 
   const needsKey = provider === 'api' && !apiKey
 
-  const send = async (text: string) => {
+  const speed = useAi((s) => s.speed)
+  const [testMsg, setTestMsg] = useState<string | null>(null)
+  const runTest = async () => {
+    if (provider === 'checking') return
+    setTestMsg('Testando…')
+    try {
+      const secs = await testConnection(provider, apiKey)
+      setTestMsg(`Conexão OK: o Claude respondeu em ${secs.toFixed(1)} s.`)
+    } catch (e) {
+      const err = e instanceof AiError ? e : new AiError('Falha no teste.', 'unknown')
+      setTestMsg(`${err.message} (código: ${err.code})`)
+    }
+  }
+
+  const send = async (text: string, opts: { noTools?: boolean } = {}) => {
     const request = text.trim()
     if (!request || busy || provider === 'checking' || needsKey) return
     const { song, activeSectionId } = useSong.getState()
@@ -77,7 +91,7 @@ export function ClaudeChat() {
       content: m.role === 'assistant' && m.proposals.length ? `${m.text}\n${m.proposals.map(describeProposal).join('\n')}` : m.text,
     }))
     const userMsg: ChatMessage = { id: newId(), role: 'user', text: request, proposals: [] }
-    const reply: ChatMessage = { id: newId(), role: 'assistant', text: '', proposals: [], pending: true }
+    const reply: ChatMessage = { id: newId(), role: 'assistant', text: '', proposals: [], pending: true, startedAt: Date.now(), request }
     setAi({ messages: [...useAi.getState().messages, userMsg, reply] })
     setInput('')
     setBusy(true)
@@ -89,6 +103,8 @@ export function ClaudeChat() {
         request,
         context,
         signal: ctl.current.signal,
+        speed: useAi.getState().speed,
+        noTools: opts.noTools,
         onText: (t) => update(reply.id, { text: t }),
         onProposal: (p) => {
           proposals.push(p)
@@ -98,7 +114,7 @@ export function ClaudeChat() {
       update(reply.id, { text: final || (proposals.length ? '' : 'Pronto.'), pending: false })
     } catch (e) {
       const err = e instanceof AiError ? e : new AiError('Algo deu errado ao falar com o Claude.', 'unknown')
-      update(reply.id, { text: err.partial ?? useAi.getState().messages.find((m) => m.id === reply.id)?.text ?? '', error: err.code === 'cancelled' ? undefined : err.message, pending: false })
+      update(reply.id, { text: err.partial ?? useAi.getState().messages.find((m) => m.id === reply.id)?.text ?? '', error: err.code === 'cancelled' ? undefined : err.message, errorCode: err.code, pending: false })
     } finally {
       setBusy(false)
       ctl.current = null
@@ -110,9 +126,16 @@ export function ClaudeChat() {
       <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
         <span className={`h-2 w-2 rounded-full ${provider === 'checking' ? 'animate-pulse bg-sky-400' : needsKey ? 'bg-amber-400' : 'bg-emerald-400'}`} />
         <span data-testid="claude-provider">
-          {provider === 'checking' ? 'Conectando…' : provider === 'claude-app' ? 'Usando sua conta do Claude (claude.ai)' : apiKey ? 'Conectado pela API com a sua chave (Claude Opus 5.5)' : 'Precisa de uma chave da API do Claude'}
+          {provider === 'checking' ? 'Conectando…' : provider === 'claude-app' ? 'Usando sua conta do Claude (claude.ai)' : apiKey ? 'Conectado pela API com a sua chave (Claude Opus 5.5)' : insideClaudeViewer() ? 'O claude.ai não liberou o Claude nesta página: use uma chave da API' : 'Precisa de uma chave da API do Claude'}
         </span>
-        <div className="ml-auto flex gap-1">
+        <div className="ml-auto flex items-center gap-1">
+          <select className="field py-0.5 text-xs" value={speed} onChange={(e) => setAi({ speed: e.target.value as 'quick' | 'full' })} aria-label="Velocidade" title="Rápido responde em segundos; Completo pensa mais e demora até 1–2 min" data-testid="claude-speed">
+            <option value="quick">Rápido</option>
+            <option value="full">Completo</option>
+          </select>
+          <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => void runTest()} disabled={provider === 'checking' || needsKey} data-testid="claude-test">
+            Testar conexão
+          </button>
           {provider === 'api' && apiKey && (
             <button className="btn-ghost px-2 py-0.5 text-xs" onClick={() => setAi({ apiKey: '' })}>
               Trocar chave
@@ -123,6 +146,12 @@ export function ClaudeChat() {
           </button>
         </div>
       </div>
+
+      {testMsg && (
+        <p className="rounded-lg px-3 py-2 text-xs" style={{ background: 'var(--surface-2)' }} data-testid="claude-test-result" role="status">
+          {testMsg}
+        </p>
+      )}
 
       {needsKey && (
         <form
@@ -158,7 +187,7 @@ export function ClaudeChat() {
           </div>
         )}
         {messages.map((m) => (
-          <Message key={m.id} m={m} />
+          <Message key={m.id} m={m} onRetry={(noTools) => m.request && void send(m.request, { noTools })} busy={busy} />
         ))}
       </div>
 
@@ -209,7 +238,21 @@ export function ClaudeChat() {
   )
 }
 
-function Message({ m }: { m: ChatMessage }) {
+function Elapsed({ since }: { since?: number }) {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  const secs = since ? Math.max(0, Math.round((now - since) / 1000)) : 0
+  return (
+    <span className="animate-pulse text-[var(--muted)]" data-testid="claude-thinking">
+      Pensando… {secs} s{secs > 8 ? ' · na primeira vez o claude.ai pede permissão (confira se apareceu uma janela); propostas podem levar até 1 min' : ''}
+    </span>
+  )
+}
+
+function Message({ m, onRetry, busy }: { m: ChatMessage; onRetry: (noTools: boolean) => void; busy: boolean }) {
   if (m.role === 'user')
     return (
       <div className="ml-8 self-end rounded-2xl rounded-br-md px-3 py-2" style={{ background: 'rgba(245,165,36,0.14)', boxShadow: 'inset 0 0 0 1px rgba(245,165,36,0.3)' }}>
@@ -223,8 +266,24 @@ function Message({ m }: { m: ChatMessage }) {
           ✳
         </span>
         <div className="min-w-0 flex-1 whitespace-pre-wrap leading-relaxed">
-          {m.text || (m.pending ? <span className="animate-pulse text-[var(--muted)]">Pensando…</span> : null)}
-          {m.error && <p className="mt-1 text-[var(--danger)]">{m.error}</p>}
+          {m.text || (m.pending ? <Elapsed since={m.startedAt} /> : null)}
+          {m.error && (
+            <div className="mt-1 flex flex-col gap-1.5" data-testid="claude-error">
+              <p className="text-[var(--danger)]">
+                {m.error} <span className="text-xs text-[var(--faint)]">(código: {m.errorCode ?? '—'})</span>
+              </p>
+              {m.request && m.errorCode !== 'not_granted' && m.errorCode !== 'sampling_disabled' && (
+                <div className="flex gap-1.5">
+                  <button className="btn py-1 text-xs" onClick={() => onRetry(false)} disabled={busy}>
+                    Tentar de novo
+                  </button>
+                  <button className="btn py-1 text-xs" onClick={() => onRetry(true)} disabled={busy} data-testid="claude-retry-plain">
+                    Tentar sem ferramentas (só texto)
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
       {m.proposals.map((p) => (

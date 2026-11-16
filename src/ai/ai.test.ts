@@ -76,3 +76,25 @@ describe('Claude proposals', () => {
     expect(ctx).toContain('olha o céu')
   })
 })
+
+describe('solo techniques in proposals', () => {
+  it('keeps bends and legato techniques from Claude', () => {
+    const r = validateProposal('propose_melody', {
+      section: 'Solo',
+      mode: 'replace',
+      notes: [
+        { pitch: 'G4', start_beat: 0, beats: 2, technique: 'bend', bend_semitones: 2, bend_hold_beats: 1.5, bend_release: true },
+        { pitch: 'A4', start_beat: 2, beats: 0.5, technique: 'hammer' },
+        { pitch: 'C5', start_beat: 2.5, beats: 0.5, technique: 'laser' },
+      ],
+      explanation: '',
+    })
+    if (!r.ok || r.proposal.kind !== 'melody') throw new Error('invalid')
+    expect(r.proposal.notes[0]).toMatchObject({ technique: 'bend', bend: { semis: 2, hold: 720, release: true } })
+    expect(r.proposal.notes[1]!.technique).toBe('hammer')
+    expect(r.proposal.notes[2]!.technique).toBeUndefined()
+    const song = newSong()
+    const a = applyProposal(song, song.sections[0]!.id, r.proposal)
+    expect(a.song.sections.find((s) => s.name === 'Solo')!.notes[0]!.bend?.semis).toBe(2)
+  })
+})

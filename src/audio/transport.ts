@@ -14,8 +14,9 @@ let unsub: (() => void) | null = null
 let current: Schedule | null = null
 
 /** Metronome and count-in are global switches (top bar and the tempo panel), off by default. */
-function optionOn(option: 'metronome' | 'countIn'): boolean {
-  return useSettings.getState().moduleOptions.transport?.[option] ?? false
+function optionOn(option: 'metronome' | 'countIn' | 'base' | 'melody'): boolean {
+  const fallback = option === 'base' || option === 'melody'
+  return useSettings.getState().moduleOptions.transport?.[option] ?? fallback
 }
 
 setPositionProvider(() => {
@@ -23,8 +24,9 @@ setPositionProvider(() => {
   return positionAt(current, Tone.getTransport().seconds)
 })
 
+/** Something audible to play: the chord backing and/or the melody, as switched on by the user. */
 function hasContent(sch: Schedule | null): boolean {
-  return !!sch && (sch.chords.length > 0 || sch.notes.length > 0)
+  return !!sch && ((optionOn('base') && sch.chords.length > 0) || (optionOn('melody') && sch.notes.length > 0))
 }
 
 function build(): Schedule {
@@ -65,7 +67,7 @@ async function scheduleAll(): Promise<void> {
     const chordPulses = sch.pulses.filter((p) => !p.countIn && p.time >= c.time - 1e-9 && p.time < c.time + c.duration - 1e-9)
     scheduled.push(
       T.schedule((time) => {
-        performChord(engine, c, voicing, chordPulses, time)
+        if (optionOn('base')) performChord(engine, c, voicing, chordPulses, time)
         draw.schedule(() => {
           useTransport.getState().set({ current: { sectionId: c.sectionId, chordIndex: c.chordIndex }, warning: null })
           useUi.getState().clearGhosts('next')
@@ -100,12 +102,16 @@ async function scheduleAll(): Promise<void> {
     const midi = note.midi
     scheduled.push(
       T.schedule((time) => {
+        if (!optionOn('melody')) return
         engine.playNote(midi, {
           time,
           duration: n.duration,
           stringIndex: note.string !== undefined ? 100 + note.string : null,
           legato: note.technique === 'hammer' || note.technique === 'pull' || note.technique === 'slide',
           glide: note.technique === 'slide' ? 0.08 : undefined,
+          tap: note.technique === 'tap',
+          vibrato: note.technique === 'vibrato' || (note.technique === 'bend' && (note.bend?.hold ?? 0) >= 480),
+          bend: note.technique === 'bend' && note.bend ? { semis: note.bend.semis, hold: (n.duration * note.bend.hold) / Math.max(1, note.duration), release: note.bend.release } : undefined,
           harmonic: note.technique === 'harmonic' || note.technique === 'artificialHarmonic',
           palmMute: note.technique === 'palmMute',
           velocity: 0.85,
@@ -149,12 +155,10 @@ export async function play(): Promise<void> {
   const u2 = useTransport.subscribe((s, prev) => {
     if (s.scope !== prev.scope || s.loop !== prev.loop) resched()
   })
-  // Turning the metronome off stops a metronome-only playback right away.
+  // Switching everything off (base, melody and metronome) stops the playback right away.
   const u3 = useSettings.subscribe((s, prev) => {
-    const on = s.moduleOptions.transport?.metronome ?? false
-    const was = prev.moduleOptions.transport?.metronome ?? false
-    if (on === was) return
-    if (!on && !hasContent(current)) void stop()
+    if (s.moduleOptions.transport === prev.moduleOptions.transport) return
+    if (!hasContent(current) && !optionOn('metronome')) void stop()
   })
   unsub = () => {
     u1()

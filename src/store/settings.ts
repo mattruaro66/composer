@@ -40,7 +40,7 @@ export const DEFAULT_MODULE_OPTIONS: Record<string, Record<string, boolean>> = {
   suggestions: { complete: true, next: true, bold: true, explain: true },
   notation: { score: true, tab: true },
   analysis: { notes: true, intervals: true, chord: true, degree: true },
-  transport: { metronome: false, countIn: false, loop: true },
+  transport: { metronome: false, countIn: false, loop: true, base: true, melody: true },
 }
 
 export const useSettings = create<SettingsState>()(

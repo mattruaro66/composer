@@ -12,7 +12,7 @@ import { PianoOctave } from './PianoOctave'
 import { StrumPad } from './StrumPad'
 import { useDetection, useFormat } from './hooks'
 import { emitNotePlayed } from './noteEvents'
-import { playChordNow, playFret } from './playActions'
+import { playChordNow, playFret, playSoloNote } from './playActions'
 import { toast } from './toast'
 import { useSolo } from '../store/solo'
 import { SoloBar } from './SoloBar'
@@ -97,7 +97,8 @@ export function InstrumentView() {
             <Fretboard
               onPlay={(si, fret, prevFret) => {
                 const p = frets[si]
-                playFret(si, fret, soloMode ? (prevFret ?? null) : typeof p === 'number' ? p : null)
+                if (soloMode) playSoloNote(si, fret, prevFret ?? null)
+                else playFret(si, fret, typeof p === 'number' ? p : null)
               }}
               onRelease={(si) => noteMode === 'damp' && audio.releaseString(si)}
               isFretDisabled={mode === 'harmonicNatural' ? (f) => !isHarmonicFretEnabled(f) : undefined}

@@ -14,6 +14,12 @@ export interface PlayOptions {
   glide?: number
   /** Sine timbre with long decay (harmonics). */
   harmonic?: boolean
+  /** Bend the string: semitones, rise time, hold time (s) at full bend, and whether it returns. */
+  bend?: { semis: number; rise?: number; hold: number; release: boolean }
+  /** Finger vibrato on the note. */
+  vibrato?: boolean
+  /** Tapping: softer, brighter attack (no pick). */
+  tap?: boolean
 }
 
 export interface StrumOptions {

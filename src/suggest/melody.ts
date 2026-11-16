@@ -15,7 +15,7 @@ export function suggestNextNotes(
   previous: number[],
   chordSymbol: string | null,
   key: Key,
-  opts: { strongBeat?: boolean; range?: [number, number]; limit?: number } = {},
+  opts: { strongBeat?: boolean; range?: [number, number]; limit?: number; /** Preferred register (MIDI): ties go to notes near it. */ center?: number } = {},
 ): NoteSuggestion[] {
   const W = WEIGHTS.melody
   const scale = keyScale(key).map(chroma)
@@ -62,6 +62,8 @@ export function suggestNextNotes(
         }
       }
     } else if (m % 12 === tonic || chordTones.has(m % 12)) score += 1
+    // Gentle pull toward the preferred register so a melody does not drift to an extreme.
+    if (opts.center !== undefined) score -= Math.abs(m - opts.center) * 0.04
     out.push({ midi: m, score, reasons })
   }
   return out.sort((a, b) => b.score - a.score).slice(0, opts.limit ?? 5)
