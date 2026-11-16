@@ -6,7 +6,7 @@ import { useSolo } from '../store/solo'
 import { useUi } from '../store/ui'
 
 /** Bumped whenever the guide gains a new feature, so it opens once for returning users. */
-export const GUIDE_VERSION = 4
+export const GUIDE_VERSION = 5
 const SEEN_KEY = 'composer-guide-seen'
 
 interface Item {
@@ -57,6 +57,20 @@ export function GuideDialog() {
   }
 
   const items: Item[] = [
+    {
+      icon: '🎙',
+      title: 'Ouvir e transcrever (novo)',
+      where: 'Painel "Ouvir e transcrever" (área Compositor)',
+      text: 'Grave ou envie um áudio: o app detecta tom, andamento, acordes e notas (com hammer-on, slide e bend), escreve na tablatura e sugere como continuar. Teste com "Exemplos".',
+      action: { label: 'Abrir o painel', run: go(() => showPanel('listen')) },
+    },
+    {
+      icon: '🧭',
+      title: 'Caminhos (novo)',
+      where: 'Painel "Caminhos": abas Acorde, Escala e Nota',
+      text: 'Escolha o que quer sentir (repouso, tensão, melancolia, surpresa, luz…) e veja o acorde, a escala ou a nota para ir, com o porquê: notas em comum, meio tom que resolve, nota característica.',
+      action: { label: 'Abrir Caminhos', run: go(() => showPanel('paths')) },
+    },
     {
       icon: '🎸',
       title: 'Modo Solo',

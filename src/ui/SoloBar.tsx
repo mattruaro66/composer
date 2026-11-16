@@ -110,7 +110,7 @@ export function SoloBar() {
       <div className="flex flex-wrap items-center gap-2">
         <label className="flex items-center gap-1.5 text-sm">
           <span className="text-[var(--muted)]">Escala</span>
-          <select className="field" value={solo.scale} onChange={(e) => solo.set({ scale: e.target.value as SoloScaleId })} data-testid="solo-scale">
+          <select className="field" value={solo.scale} onChange={(e) => solo.set({ scale: e.target.value as SoloScaleId, customScale: null })} data-testid="solo-scale">
             {SOLO_SCALES.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.label}
@@ -118,8 +118,13 @@ export function SoloBar() {
             ))}
           </select>
         </label>
-        <span className="chip" title={SOLO_SCALES.find((s) => s.id === solo.scale)?.hint}>
+        <span className="chip" title={solo.customScale ? 'Escolhida em Caminhos' : SOLO_SCALES.find((s) => s.id === solo.scale)?.hint}>
           {scale.name.replace(/^([A-G][#b]?)/, (m) => fmt.note(m))}
+          {solo.customScale && (
+            <button className="ml-1 opacity-70 hover:opacity-100" onClick={() => solo.set({ customScale: null })} aria-label="Voltar à escala do seletor" title="Voltar à escala do seletor">
+              ✕
+            </button>
+          )}
         </span>
         {chord && (
           <span className="text-xs text-[var(--muted)]">

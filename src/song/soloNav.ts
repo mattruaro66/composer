@@ -85,7 +85,8 @@ export function barBeat(tick: number, measures: MeasureSpan[]): { bar: number; b
 }
 
 /** Chord sounding at a tick of the section (by its chord layout), or null. */
-export function chordAtTick(song: Song, section: Section, tick: number): string | null {
+/** Index of the chord sounding at a tick (the progression loops past its end), or -1. */
+export function chordIndexAtTick(song: Song, section: Section, tick: number): number {
   const layout = layoutSection(song, section)
   let pulseTick = 0
   let pulse = 0
@@ -95,12 +96,24 @@ export function chordAtTick(song: Song, section: Section, tick: number): string 
       startTick[pulse++] = pulseTick
       pulseTick += ticksPerPulse(m.meter.den)
     }
-  let found: string | null = null
-  section.chords.forEach((c, i) => {
+  if (pulseTick > 0 && tick >= pulseTick && section.chords.length) tick = tick % pulseTick
+  let found = -1
+  section.chords.forEach((_, i) => {
     const t = startTick[layout.chordStarts[i] ?? 0]
-    if (t !== undefined && t <= tick) found = c.symbol
+    if (t !== undefined && t <= tick) found = i
   })
-  // Past the last chord the progression repeats (as it loops when played).
-  if (pulseTick > 0 && tick >= pulseTick && section.chords.length) return chordAtTick(song, section, tick % pulseTick)
   return found
+}
+
+export function chordAtTick(song: Song, section: Section, tick: number): string | null {
+  const i = chordIndexAtTick(song, section, tick)
+  return i >= 0 ? (section.chords[i]?.symbol ?? null) : null
+}
+
+/** The chord after the one sounding at a tick (wrapping around). */
+export function nextChordAtTick(song: Song, section: Section, tick: number): string | null {
+  const n = section.chords.length
+  if (!n) return null
+  const i = chordIndexAtTick(song, section, tick)
+  return section.chords[(i + 1) % n]?.symbol ?? null
 }

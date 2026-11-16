@@ -6,6 +6,8 @@ import type { ModuleId } from './meta'
  * download their code (e.g. VexFlow only loads with the notation module).
  */
 export const MODULE_COMPONENTS: Partial<Record<ModuleId, LazyExoticComponent<ComponentType>>> = {
+  paths: lazy(() => import('./panels/PathsPanel')),
+  listen: lazy(() => import('./panels/ListenPanel')),
   ai: lazy(() => import('./panels/AiPanel')),
   sound: lazy(() => import('./panels/SoundPanel')),
   analysis: lazy(() => import('./panels/AnalysisPanel')),

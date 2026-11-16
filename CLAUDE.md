@@ -10,7 +10,7 @@ alternável entre cifra (C, D, E…) e dó-ré-mi, e entre sustenidos e bemóis.
 ## Princípio de interface: tudo modular e opcional (regra mais importante)
 - Toda função é um módulo que o usuário liga/desliga em Configurações > Módulos: análise, sugestões,
   voicings, estrutura, timeline, metrônomo, modos de tocar, partitura, tablatura, melodia, tessitura,
-  rearmonização, modulação, didática, círculo de quintas
+  rearmonização, modulação, didática, círculo de quintas, caminhos, ouvir e transcrever
 - Todo painel pode ser minimizado (vira ícone/aba), ocultado, redimensionado e reposicionado
   (encaixe em topo, laterais e inferior); "modo foco" mostra só o instrumento
 - Dentro de cada módulo os recursos também são opcionais. Ex.: sugestões com toggles para completar
@@ -41,7 +41,8 @@ alternável entre cifra (C, D, E…) e dó-ré-mi, e entre sustenidos e bemóis.
 src/
   theory/      funções puras: notas, intervalos, escalas, modos, campo harmônico, graus,
                detecção de acorde e inversão, transposição, voicings no braço
-  suggest/     motor de sugestões (completar acorde, próximo acorde, próxima nota de melodia)
+  suggest/     motor de sugestões (completar acorde, próximo acorde, próxima nota de melodia, caminhos por intenção)
+  listen/      escuta de áudio: altura (YIN), ataques, tempo, acordes (cromagrama), tom, notas e técnicas
   instrument/  modelos de instrumento e afinação (cordas, casas, presets, capotraste)
   audio/       engine de áudio: carregamento de samples, técnicas de toque, metrônomo, transporte
   ui/          componentes: Fretboard, PianoOctave, TuningPanel, PlayModePanel, SuggestionPanel,
@@ -50,7 +51,7 @@ src/
   song/        modelo único da música (seções → compassos → eventos) e comandos de edição
   notation/    projeção da música em partitura e tablatura (VexFlow) e algoritmo de digitação
   store/       stores Zustand (instrumento, afinação, tom, seleção, progressão, transporte)
-Regra: theory/ e suggest/ não importam React nem Tone. Tudo testável isoladamente.
+Regra: theory/, suggest/ e listen/ (exceto decode.ts) não importam React nem Tone. Tudo testável isoladamente.
 
 ## Instrumentos e afinação
 - Violão 6 cordas, guitarra 6 e 7 cordas, baixo 4 e 5 cordas: 0 a 22 casas (24 na guitarra)

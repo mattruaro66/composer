@@ -55,6 +55,23 @@ function withEngine(fn: (e: AudioEngine) => void): void {
   else void getEngine().then(fn)
 }
 
+export interface Playback {
+  /** AudioContext time when playback starts. */
+  start: number
+  now: () => number
+  stop: () => void
+}
+
+export interface SequenceEvent {
+  midi: number[]
+  /** Seconds from the start. */
+  at: number
+  duration: number
+  strings?: (number | null)[]
+  chord?: boolean
+  options?: PlayOptions
+}
+
 export const audio = {
   playStringNote: (stringIndex: number, midi: number, opts: PlayOptions = {}) =>
     withEngine((e) => e.playNote(midi, { ...opts, stringIndex })),
@@ -66,6 +83,29 @@ export const audio = {
   damp: () => withEngine((e) => e.dampAll()),
   /** Instant kill of every note. */
   kill: () => withEngine((e) => e.stopAll(undefined, 0.012)),
+  /** Play a decoded recording through the speakers; resolves with a stop handle and the start time. */
+  playBuffer: async (buffer: AudioBuffer, onEnded?: () => void): Promise<Playback> => {
+    unlockAudio()
+    const e = await getEngine()
+    const src = e.ctx.createBufferSource()
+    src.buffer = buffer
+    src.connect(e.ctx.destination)
+    const start = e.ctx.currentTime + 0.05
+    src.onended = () => onEnded?.()
+    src.start(start)
+    return { start, now: () => e.ctx.currentTime, stop: () => { src.onended = null; try { src.stop() } catch { /* already stopped */ } } }
+  },
+  /** Schedule notes and chords (seconds from now) on the instrument's own voices. */
+  playSequence: async (events: SequenceEvent[]): Promise<Playback> => {
+    unlockAudio()
+    const e = await getEngine()
+    const start = e.ctx.currentTime + 0.08
+    for (const ev of events) {
+      if (ev.chord) e.strum(ev.midi.map((m, i) => ({ midi: m, stringIndex: ev.strings?.[i] ?? null })), { time: start + ev.at, duration: ev.duration, velocity: 0.55 })
+      else for (const [i, m] of ev.midi.entries()) e.playNote(m, { ...ev.options, time: start + ev.at, duration: ev.duration, stringIndex: ev.strings?.[i] ?? null })
+    }
+    return { start, now: () => e.ctx.currentTime, stop: () => e.stopAll(undefined, 0.05) }
+  },
   releaseString: (stringIndex: number | null, midi?: number) => {
     if (engineInstance) engineInstance.releaseString(stringIndex, midi)
   },

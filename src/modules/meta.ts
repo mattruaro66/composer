@@ -1,4 +1,6 @@
 export type ModuleId =
+  | 'paths'
+  | 'listen'
   | 'ai'
   | 'sound'
   | 'analysis'
@@ -35,6 +37,26 @@ export interface ModuleMeta {
 }
 
 export const MODULES: ModuleMeta[] = [
+  {
+    id: 'paths',
+    name: 'Caminhos',
+    description: 'Se você quer X, vá para Y: próximo acorde, escala e próxima nota escolhidos pela intenção (repouso, tensão, melancolia, surpresa…), com o porquê',
+    defaultDock: 'right',
+    options: [
+      { id: 'harmony', label: 'Próximo acorde' },
+      { id: 'scales', label: 'Escala para solar' },
+      { id: 'melody', label: 'Próxima nota' },
+    ],
+  },
+  {
+    id: 'listen',
+    name: 'Ouvir e transcrever',
+    description: 'Grave ou envie um áudio: o app detecta notas, acordes, tom e andamento, escreve na tablatura e sugere continuações',
+    defaultDock: 'left',
+    options: [
+      { id: 'continue', label: 'Sugerir continuação' },
+    ],
+  },
   { id: 'ai', name: 'Claude', description: 'Parceiro de composição com IA: progressões, solos, melodias, letras e músicas completas para ouvir e aplicar', defaultDock: 'right' },
   { id: 'sound', name: 'Som', description: 'Timbre, sustain, fade, abafar, equalização e efeitos (drive, chorus, delay, reverb)', defaultDock: 'right' },
   {
@@ -106,7 +128,7 @@ export interface WorkspacePreset {
 
 export const BUILTIN_PRESETS: WorkspacePreset[] = [
   { id: 'minimal', name: 'Mínimo', modules: [], builtIn: true },
-  { id: 'composer', name: 'Compositor', modules: ['suggestions', 'timeline', 'structure', 'analysis'], builtIn: true },
+  { id: 'composer', name: 'Compositor', modules: ['paths', 'listen', 'suggestions', 'timeline', 'structure', 'analysis'], builtIn: true },
   { id: 'player', name: 'Tocar', modules: ['sound', 'analysis', 'voicings'], builtIn: true },
   { id: 'score', name: 'Partitura', modules: ['notation'], builtIn: true },
   { id: 'didactic', name: 'Didático', modules: MODULES.map((m) => m.id), builtIn: true },

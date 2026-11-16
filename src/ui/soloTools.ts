@@ -23,6 +23,10 @@ export function useCurrentChordSymbol(): string | null {
 export function useSoloScale(): SoloScale {
   const id = useSolo((s) => s.scale)
   const key = useCurrentKey()
+  const custom = useSolo((s) => s.customScale)
   const chord = useCurrentChordSymbol()
-  return useMemo(() => soloScale(id, key, chord), [id, key, chord])
+  return useMemo(() => {
+    const base = soloScale(id, key, chord)
+    return custom ? { ...base, name: custom.name, pcs: custom.pcs, root: custom.root } : base
+  }, [id, key, chord, custom])
 }

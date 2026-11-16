@@ -40,6 +40,8 @@ interface SoloState {
   cursor: number
   selectedId: string | null
   showKeys: boolean
+  /** Scale picked in Caminhos (overrides the scale selector until cleared). */
+  customScale: { name: string; pcs: number[]; root: number } | null
   set: (patch: Partial<Omit<SoloState, 'set'>>) => void
 }
 
@@ -61,6 +63,7 @@ export const useSolo = create<SoloState>()(
       cursor: 0,
       selectedId: null,
       showKeys: true,
+      customScale: null,
       set: (patch) => set(patch),
     }),
     { name: 'composer.solo', storage: safeStorage, version: 1, partialize: (s) => ({ ...s, recording: false, recordingOverBase: false, cursor: 0, selectedId: null }) },

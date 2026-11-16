@@ -76,13 +76,13 @@ test('todo módulo pode ser desligado, ligado e minimizado sem erro; presets fun
   await fresh(page)
   await page.getByTestId('workspace-select').selectOption('didactic')
   const panels = page.locator('section[data-testid^=panel-]')
-  await expect(panels).toHaveCount(17)
+  await expect(panels).toHaveCount(19)
   // Minimize every panel, then restore from the tabs
   const ids = await panels.evaluateAll((els) => els.map((e) => e.getAttribute('data-testid')!.replace('panel-', '')))
   for (const id of ids) await page.getByTestId(`panel-${id}`).getByRole('button', { name: /^Minimizar/ }).click()
   await expect(panels).toHaveCount(0)
   for (const id of ids) await page.getByTestId(`tab-${id}`).click()
-  await expect(panels).toHaveCount(17)
+  await expect(panels).toHaveCount(19)
   // Turn every module off and back on
   await openSettingsTab(page, 'Módulos')
   for (const id of ids) await page.getByTestId(`module-toggle-${id}`).uncheck()
@@ -92,7 +92,7 @@ test('todo módulo pode ser desligado, ligado e minimizado sem erro; presets fun
   await openSettingsTab(page, 'Módulos')
   for (const id of ids) await page.getByTestId(`module-toggle-${id}`).check()
   await closeSettings(page)
-  await expect(panels).toHaveCount(17)
+  await expect(panels).toHaveCount(19)
   await expect(page.getByText(/encontrou um erro/)).toHaveCount(0)
 
   // Presets
@@ -163,7 +163,7 @@ test('modo solo: notas soltas com escala no braço e gravação passo a passo', 
   for (const [s, f] of [[4, 1], [4, 3], [3, 2], [3, 2]]) await page.getByTestId(`fret-${s}-${f}`).click()
   await expect(page.getByTestId('solo-bar')).toContainText('4 notas')
   // In solo mode frets do not stay selected as a chord
-  await expect(page.locator('[aria-selected=true]')).toHaveCount(0)
+  await expect(page.getByTestId('fretboard').locator('[aria-selected=true]')).toHaveCount(0)
   await page.getByRole('button', { name: '↶ Desfazer' }).click()
   await expect(page.getByTestId('solo-bar')).toContainText('3 notas')
   await page.getByTestId('solo-record').click()
@@ -291,5 +291,47 @@ test('piano com várias oitavas e 88 teclas; guia abre e leva às funções', as
   await expect(page.getByTestId('guide')).toBeHidden()
   await expect(page.getByTestId('solo-bar')).toBeVisible()
   await expect(page.getByTestId('instrument-select')).toHaveValue('electric6')
+  expect(errors).toEqual([])
+})
+
+test('ouvir: envia um áudio, transcreve para a tablatura e sugere continuação', async ({ page }) => {
+  const errors = trackErrors(page)
+  await fresh(page)
+  // A WAV with C D E F G at 120 BPM, made with the app's own test synthesizer.
+  const { renderTones, encodeWav } = await import('../src/listen/synth')
+  const tones = [60, 62, 64, 65, 67, 65, 64, 62].map((m, i) => ({ midi: m, start: 0.2 + i * 0.5, duration: 0.45 }))
+  const wav = Buffer.from(encodeWav(renderTones(tones, 22050, 4.5), 22050))
+  await page.getByTestId('listen-mode').selectOption('melody')
+  await page.getByTestId('listen-file').setInputFiles({ name: 'escala.wav', mimeType: 'audio/wav', buffer: wav })
+  await expect(page.getByTestId('listen-result')).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByTestId('listen-bpm')).toContainText('120')
+  await expect(page.getByTestId('listen-notes').locator('span')).toHaveCount(8)
+  await page.getByTestId('listen-import').click()
+  await expect(page.getByTestId('listen-imported')).toBeVisible()
+  await expect(page.getByTestId('panel-notation')).toBeVisible()
+  await expect(page.getByTestId('listen-continue')).toBeVisible()
+
+  // The chords example is recognized chord by chord.
+  await page.getByText('Exemplos ▾').click()
+  await page.getByTestId('listen-demo-chords').click()
+  await expect(page.getByTestId('listen-chords')).toContainText('C', { timeout: 20_000 })
+  await expect(page.getByTestId('listen-chords').locator('button')).toHaveCount(8)
+  await expect(page.getByTestId('listen-key')).toContainText('C maior')
+  expect(errors).toEqual([])
+})
+
+test('caminhos: se você quer tensão, vá para o V7, com o porquê, e adiciona', async ({ page }) => {
+  const errors = trackErrors(page)
+  await fresh(page)
+  await expect(page.getByTestId('paths')).toBeVisible()
+  await expect(page.getByTestId('path-tension')).toContainText('tensão')
+  await page.getByTestId('path-chord-G7').click()
+  await expect(page.getByTestId('path-chord-G7')).toContainText('trítono')
+  await page.getByTestId('path-add').click()
+  await expect(page.getByTestId('timeline')).toContainText('G7')
+  await page.getByTestId('paths-tab-scales').click()
+  await expect(page.getByTestId('scale-path-safe')).toBeVisible()
+  await page.getByTestId('paths-tab-melody').click()
+  await expect(page.getByTestId('melody-path-rest')).toBeVisible()
   expect(errors).toEqual([])
 })

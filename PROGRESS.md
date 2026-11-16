@@ -117,7 +117,7 @@
 - **Claude:** velocidade Rápido/Completo, tempo decorrido enquanto pensa, erro com código, "Tentar de novo" e "Tentar sem ferramentas", botão "Testar conexão", resposta só com propostas tratada como sucesso; o Claude também propõe solos com técnicas por nota
 
 ## Situação
-Todas as 9 fases concluídas + rodada de som/UX. 141 testes unitários + 14 testes E2E passando.
+Todas as 9 fases concluídas + rodada de som/UX. 156 testes unitários + 16 testes E2E passando.
 
 ## Evoluções sugeridas (pós-MVP)
 - Entrada por microfone (detecção de nota/acorde)
@@ -128,3 +128,21 @@ Todas as 9 fases concluídas + rodada de som/UX. 141 testes unitários + 14 test
 - Piano: seletor Teclado com 1 a 5 oitavas ou piano inteiro (88 teclas, A0–C8), ◀ ▶ por oitava, rolagem lateral;
   voicings, solo e partitura usam a oitava central do teclado visível
 - Guia de funções (botão "? Guia" no topo, abre uma vez por versão) com atalhos para Solo, técnicas, piano, Claude e partitura
+
+## Rodada 6
+- Caminhos (suggest/paths.ts + painel): "se você quer X, vá para Y" em três níveis
+  - próximo acorde por intenção (repouso, tensão, movimento, melancolia, luz, surpresa, sofisticação, escuridão,
+    mudar de tom), com função, tipo (empréstimo, dominante secundário…), condução de vozes calculada
+    (notas em comum, meio tom que sobe/desce) e trítono que pede resolução
+  - escala para solar por intenção (segura, do tom, blues, brilho, doce, sombria, tensão, exótica) com a nota característica;
+    "Mostrar no instrumento" aplica a escala no modo Solo
+  - próxima nota por intenção (repouso, tensão, movimento, salto, cor, preparar o próximo acorde, blue note)
+- Ouvir e transcrever (src/listen/, puro e testado com áudio sintetizado):
+  - YIN (altura), fluxo espectral com filtro de energia (ataques), tempo por autocorrelação e fase
+  - cromagrama com moldes harmônicos + Viterbi (acordes por tempo, baixo para inversões), tom por Krumhansl–Kessler
+  - segmentação de notas com correção de afinação, detecção de hammer-on/pull-off, slide e bend pelo tempo de transição
+  - quantização na grade, digitação na tablatura (ligados na mesma corda), importação como seção (tom e BPM opcionais)
+  - painel: gravar (microfone), enviar arquivo, exemplos, piano-roll com cursor, ouvir original × transcrição,
+    continuação (próximos acordes, próxima nota, Claude)
+- Limites conhecidos: melodia é monofônica; acordes + melodia ao mesmo tempo é aproximado; microfone pode ser
+  bloqueado dentro do claude.ai (usar "Enviar áudio")
