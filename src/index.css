@@ -1,39 +1,170 @@
 @import "tailwindcss";
 
+/* Layout: instrument-first workspace — header strip, instrument stage, docked panels.
+   Palette: deep graphite with a faint blue bias, warm amber accent (strings/brass), sky for "next". */
 :root {
   color-scheme: dark;
+  --bg: #0c0e12;
+  --surface: #14171d;
+  --surface-2: #1b1f27;
+  --surface-3: #242a34;
+  --line: rgba(255, 255, 255, 0.07);
+  --fg: #eef0f3;
+  --muted: #9aa3b2;
+  --faint: #626b7a;
+  --accent: #f5a524;
+  --accent-ink: #1a1203;
+  --next: #38bdf8;
+  --danger: #f87171;
+  --ok: #34d399;
+  --font-ui: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  -webkit-tap-highlight-color: transparent;
 }
 body {
-  background: #0a0a0a;
-  color: #f5f5f5;
+  font-feature-settings: 'cv11', 'ss01';
+}
+h1,
+h2,
+.font-display {
+  font-family: var(--font-display);
+}
+:focus-visible {
+  outline: 2px solid var(--next);
+  outline-offset: 2px;
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center gap-1 rounded-lg bg-neutral-800 px-3 py-1.5 text-sm text-neutral-100 ring-1 ring-white/10 transition hover:bg-neutral-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition select-none active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40;
+    background: var(--surface-2);
+    color: var(--fg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .btn:hover:not(:disabled) {
+    background: var(--surface-3);
   }
   .btn-primary {
-    @apply bg-amber-500 font-semibold text-neutral-950 ring-amber-400 hover:bg-amber-400;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 600;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 6px 16px -8px rgba(245, 165, 36, 0.6);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #ffb83f;
   }
   .btn-active {
-    @apply bg-sky-600 ring-sky-400 hover:bg-sky-500;
+    background: rgba(56, 189, 248, 0.18);
+    color: #bae6fd;
+    box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.5);
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm transition;
+    color: var(--muted);
+  }
+  .btn-ghost:hover {
+    background: var(--surface-2);
+    color: var(--fg);
   }
   .icon-btn {
-    @apply inline-flex h-7 w-7 items-center justify-center rounded-md text-neutral-400 hover:bg-white/10 hover:text-neutral-100;
+    @apply inline-flex h-7 w-7 items-center justify-center rounded-md transition;
+    color: var(--faint);
+  }
+  .icon-btn:hover {
+    background: var(--surface-3);
+    color: var(--fg);
   }
   .field {
-    @apply rounded-lg bg-neutral-800 px-2 py-1.5 text-sm text-neutral-100 ring-1 ring-white/10 focus:outline-none focus:ring-sky-500;
+    @apply rounded-lg px-2 py-1.5 text-sm focus:outline-none;
+    background: var(--surface-2);
+    color: var(--fg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .field:focus {
+    box-shadow: inset 0 0 0 1px var(--next);
   }
   .chip {
-    @apply inline-flex items-center gap-1 rounded-full bg-neutral-800 px-2 py-0.5 text-xs text-neutral-200 ring-1 ring-white/10;
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs;
+    background: var(--surface-2);
+    color: #d6dae1;
+    box-shadow: inset 0 0 0 1px var(--line);
   }
   .panel {
-    @apply rounded-xl bg-neutral-900/80 ring-1 ring-white/5;
+    @apply rounded-2xl;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line), 0 10px 30px -18px rgba(0, 0, 0, 0.8);
   }
   .label {
-    @apply mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500;
+    @apply mb-1.5 text-[11px] font-semibold uppercase;
+    letter-spacing: 0.08em;
+    color: var(--faint);
   }
   .menu-item {
-    @apply rounded-md px-2 py-1 text-left hover:bg-white/10 disabled:opacity-40;
+    @apply rounded-md px-2 py-1.5 text-left text-sm disabled:opacity-40;
+  }
+  .menu-item:hover:not(:disabled) {
+    background: var(--surface-3);
+  }
+  .segment {
+    @apply flex shrink-0 items-center gap-1 rounded-xl p-1;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .seg-label {
+    @apply hidden px-1.5 text-[10px] font-semibold uppercase 2xl:inline;
+    letter-spacing: 0.1em;
+    color: var(--faint);
+  }
+}
+
+/* Fretboard and strum pad animations */
+@keyframes string-vibe {
+  0% { transform: translateY(0); }
+  25% { transform: translateY(-0.9px); }
+  75% { transform: translateY(0.9px); }
+  100% { transform: translateY(0); }
+}
+@keyframes ring-fade {
+  from { opacity: var(--ring-from, 0.9); }
+  to { opacity: 0; }
+}
+@keyframes pluck {
+  from { transform: scale(0.6); opacity: 0.85; }
+  to { transform: scale(2.1); opacity: 0; }
+}
+@keyframes toast-in {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.string-glow {
+  opacity: 0;
+}
+.string-glow.ringing {
+  animation: ring-fade var(--ring, 2s) cubic-bezier(0.2, 0.6, 0.3, 1) forwards, string-vibe 70ms linear infinite;
+}
+.pluck-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pluck 0.45s ease-out forwards;
+}
+.fret-cell .hover-dot {
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+@media (hover: hover) {
+  .fret-cell:hover .hover-dot {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .string-glow.ringing,
+  .pluck-ring {
+    animation: none;
   }
 }

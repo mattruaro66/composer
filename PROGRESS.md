@@ -77,12 +77,27 @@
 - Playwright (`npm run e2e`): fluxo completo (guitarra em Drop D, tocar acorde, aceitar sugestão, tocar progressão, escrever na tab e conferir a pauta), todo módulo desliga/liga/minimiza sem erro, presets e modo foco, recarregar preserva tudo, exportações, layout mobile
 - Acessibilidade: rótulos ARIA em braço/teclas/painéis/diálogos, foco visível, atalhos de teclado; desempenho: Tone.js/smplr, VexFlow e cada painel carregados sob demanda
 
+## Rodada 2 — Som natural e UX ✅
+**Som**
+- Samples reais empacotados no app (`public/samples`, tonejs-instruments, MIT): violão aço e nylon, guitarra limpa, baixo, piano — funcionam offline e no link de teste, sem servidor externo; carregados por instrumento, os mais próximos do registro primeiro
+- Motor de vozes próprio (substitui o smplr): uma voz por corda com envelope; **sustain** (natural ou mais curto), **fade** ao soltar/abafar, **Abafar** (Esc) e **Cortar**, modo "deixar soar" × "abafar ao soltar"; velocity muda volume e brilho; ligados de verdade (hammer/pull trocam a altura sem novo ataque, slide desliza)
+- Fallback: Karplus-Strong estendido (posição da palheta, decaimento por altura, afinação fina por allpass — testado com ±10 cents)
+- Cadeia de efeitos: tom (passa-baixa), EQ de 3 bandas, drive/distorção com simulação de caixa, chorus, delay, reverb, compressor e limitador; presets Limpo, Quente, Brilhante, Sala grande, Crunch, Distorção, Ambiente, Lo-fi
+- Gravação do áudio real no navegador headless para conferir altura, sustain, ausência de clipping e o abafar
+
+**UX**
+- Braço redesenhado: madeira, trastes metálicos, cordas enroladas, vibração da corda e anel de toque ao tocar, prévia do nome da nota ao passar o mouse, toque no pointerdown (menos latência), toque no celular sem disparar notas ao rolar
+- Área de strum: arraste pelas cordas para tocar o acorde (a velocidade define a dinâmica), toque numa corda para dedilhar
+- Instrumento em largura total no centro; progressão/partitura abaixo, painéis nas laterais
+- Topo reorganizado em grupos (Instrumento, Tom, Tocar/BPM, Modo) com play global; no celular, cabeçalho compacto com faixa rolável
+- Popover "Som" com botões giratórios (arrastar, roda do mouse, setas; duplo clique restaura), módulo Som e área de trabalho "Tocar"
+- Toasts de confirmação, dica inicial, Esc para abafar, tipografia Inter + Space Grotesk, paleta grafite com âmbar
+
 ## Situação
-Todas as 9 fases concluídas. 106 testes unitários + 5 testes E2E passando.
+Todas as 9 fases concluídas + rodada de som/UX. 117 testes unitários + 6 testes E2E passando.
 
 ## Evoluções sugeridas (pós-MVP)
 - Entrada por microfone (detecção de nota/acorde)
 - Linha de baixo e bateria automáticas
 - Sugestões com IA (API do Claude) explicando escolhas por estilo
 - App nativo via Capacitor se o PWA não bastar no iOS
-- Glissando real no slide (hoje é aproximado por notas cromáticas rápidas)

@@ -97,6 +97,7 @@ async function scheduleAll(): Promise<void> {
           duration: n.duration,
           stringIndex: note.string !== undefined ? 100 + note.string : null,
           legato: note.technique === 'hammer' || note.technique === 'pull' || note.technique === 'slide',
+          glide: note.technique === 'slide' ? 0.08 : undefined,
           harmonic: note.technique === 'harmonic' || note.technique === 'artificialHarmonic',
           palmMute: note.technique === 'palmMute',
           velocity: 0.85,

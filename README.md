@@ -15,10 +15,14 @@ npm run e2e        # teste ponta a ponta (Playwright)
 ## Como usar (resumo)
 
 - **Topo:** instrumento · afinação/capotraste · tom (+ detectar) · BPM e compasso · modo de tocar · área de trabalho · foco · 📁 projetos · ⚙ configurações
-- **Braço:** clique nas casas (uma por corda); clique à esquerda da corda alterna solta (○) / muda (×) / nada
+- **Braço:** clique nas casas (uma por corda); clique à esquerda da corda alterna solta (○) / muda (×) / nada; clicar de novo numa casa tira o dedo e abafa a corda
+- **Área de strum** (ao lado do braço; abaixo no celular): arraste pelas cordas para tocar o acorde, toque numa corda para dedilhar
+- **🎛 Som:** presets de timbre, sustain, fade, abafar/cortar, tom, EQ, drive, chorus, delay e reverb; **Esc** abafa tudo
 - **+ Progressão** adiciona o acorde detectado; nas sugestões, clique para ouvir/ver e dê duplo clique para adicionar
 - **Espaço** toca/pausa a progressão; no último tempo antes da troca aparece “Próximo: …” e o próximo acorde pisca no braço
 - **Configurações › Módulos** liga/desliga cada módulo e seus recursos; todo painel pode ser minimizado, ocultado, redimensionado e arrastado entre as docas
 - **Partitura/tablatura:** clique na tab e digite a casa; clique na pauta e digite A–G; “Gravar” registra o que você toca
 
 Veja `CLAUDE.md` (especificação) e `PROGRESS.md` (o que foi feito em cada fase). Os pesos do motor de sugestões ficam em `src/suggest/weights.ts`.
+
+Samples: [tonejs-instruments](https://github.com/nbrosowsky/tonejs-instruments) (MIT), em `public/samples` — veja `public/samples/LICENSE.md`.

@@ -29,8 +29,9 @@ alternável entre cifra (C, D, E…) e dó-ré-mi, e entre sustenidos e bemóis.
 ## Stack obrigatória
 - React 18 + TypeScript (strict) + Vite
 - Tonal.js para toda a teoria (não reimplementar o que Tonal já faz)
-- Tone.js para transporte, agendamento e efeitos; smplr para samples reais (guitarra acústica,
-  elétrica limpa, baixo, piano); Tone.PluckSynth (Karplus-Strong) como fallback
+- Tone.js para transporte, agendamento e efeitos; samples reais locais em public/samples
+  (tonejs-instruments, MIT: violão aço e nylon, guitarra limpa, baixo, piano) tocados por vozes
+  próprias (envelope por corda, sustain, fade, abafar); Karplus-Strong estendido como fallback
 - Zustand para estado; Tailwind para estilo
 - Vitest para lógica; Playwright para um teste de fluxo ponta a ponta
 

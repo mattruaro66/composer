@@ -76,13 +76,13 @@ test('todo módulo pode ser desligado, ligado e minimizado sem erro; presets fun
   await fresh(page)
   await page.getByTestId('workspace-select').selectOption('didactic')
   const panels = page.locator('section[data-testid^=panel-]')
-  await expect(panels).toHaveCount(15)
+  await expect(panels).toHaveCount(16)
   // Minimize every panel, then restore from the tabs
   const ids = await panels.evaluateAll((els) => els.map((e) => e.getAttribute('data-testid')!.replace('panel-', '')))
   for (const id of ids) await page.getByTestId(`panel-${id}`).getByRole('button', { name: /^Minimizar/ }).click()
   await expect(panels).toHaveCount(0)
   for (const id of ids) await page.getByTestId(`tab-${id}`).click()
-  await expect(panels).toHaveCount(15)
+  await expect(panels).toHaveCount(16)
   // Turn every module off and back on
   await openSettingsTab(page, 'Módulos')
   for (const id of ids) await page.getByTestId(`module-toggle-${id}`).uncheck()
@@ -92,7 +92,7 @@ test('todo módulo pode ser desligado, ligado e minimizado sem erro; presets fun
   await openSettingsTab(page, 'Módulos')
   for (const id of ids) await page.getByTestId(`module-toggle-${id}`).check()
   await closeSettings(page)
-  await expect(panels).toHaveCount(15)
+  await expect(panels).toHaveCount(16)
   await expect(page.getByText(/encontrou um erro/)).toHaveCount(0)
 
   // Presets
@@ -109,6 +109,33 @@ test('todo módulo pode ser desligado, ligado e minimizado sem erro; presets fun
   await page.getByTestId('focus-toggle').click()
   await expect(panels).toHaveCount(0)
   await page.getByTestId('focus-toggle').click()
+  expect(errors).toEqual([])
+})
+
+test('som: presets, sustain, abafar e strum por gesto funcionam sem erro', async ({ page }) => {
+  const errors = trackErrors(page)
+  await fresh(page)
+  await page.getByTestId('fret-1-3').click()
+  await expect(page.getByTestId('audio-status')).toHaveAttribute('data-state', /ready|fallback/, { timeout: 20_000 })
+  await page.getByTestId('sound-open').click()
+  for (const p of ['warm', 'crunch', 'lead', 'ambient', 'clean']) await page.getByTestId(`sound-preset-${p}`).click()
+  // Sustain knob responds to the keyboard
+  const sustain = page.getByRole('slider', { name: 'Sustain' })
+  await sustain.focus()
+  for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowDown')
+  expect(Number(await sustain.getAttribute('aria-valuenow'))).toBeLessThan(1)
+  await page.getByTestId('note-mode-damp').click()
+  await page.getByTestId('damp').click()
+  await page.keyboard.press('Escape') // closes the popover
+  await page.keyboard.press('Escape') // damps
+  // Strum gesture across the pad
+  const pad = page.locator('[data-testid=strum-pad]:visible')
+  const box = (await pad.boundingBox())!
+  await page.mouse.move(box.x + box.width / 2, box.y + 4)
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height - 4, { steps: 10 })
+  await page.mouse.up()
+  await page.getByTestId('damp-main').click()
   expect(errors).toEqual([])
 })
 

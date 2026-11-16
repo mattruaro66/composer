@@ -8,8 +8,10 @@ export interface PlayOptions {
   /** One voice per string: a new note on the same string mutes the previous one. */
   stringIndex?: number | null
   palmMute?: boolean
-  /** Legato (hammer-on, pull-off, slide): softer re-attack. */
+  /** Legato (hammer-on, pull-off, slide): re-pitch the ringing string without a new attack. */
   legato?: boolean
+  /** Slide: glide time in seconds to the new pitch (with legato). */
+  glide?: number
   /** Sine timbre with long decay (harmonics). */
   harmonic?: boolean
 }

@@ -7,6 +7,8 @@ import { useUi } from './store/ui'
 import { InstrumentView } from './ui/InstrumentView'
 import { SettingsDialog } from './ui/SettingsDialog'
 import { ProjectsDialog } from './ui/ProjectsDialog'
+import { Toaster } from './ui/Toaster'
+import { audio } from './audio'
 import { TopBar } from './ui/TopBar'
 import { TuningPanel } from './ui/TuningPanel'
 
@@ -47,6 +49,10 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
+      if (e.key === 'Escape' && !useUi.getState().settingsOpen && !useUi.getState().projectsOpen) {
+        audio.damp()
+        return
+      }
       if (e.code !== 'Space' || /INPUT|SELECT|TEXTAREA|BUTTON/.test(t.tagName) || t.isContentEditable) return
       e.preventDefault()
       void transport.toggle()
@@ -58,17 +64,20 @@ export default function App() {
   return (
     <div className="flex min-h-screen flex-col">
       <TopBar />
-      <main className="flex flex-1 flex-col gap-2 p-2 sm:p-3">
+      <main className="mx-auto flex w-full max-w-[1800px] flex-1 flex-col gap-3 py-3" style={{ paddingLeft: 'max(12px, env(safe-area-inset-left, 0px))', paddingRight: 'max(12px, env(safe-area-inset-right, 0px))' }}>
         {tuningOpen && (
-          <div className="panel p-3">
+          <div className="panel p-4">
             <TuningPanel />
           </div>
         )}
         {!focus && <Dock dock="top" />}
-        <div className="flex flex-col gap-2 lg:flex-row">
+        <section className="min-w-0" aria-label="Instrumento">
+          <InstrumentView />
+        </section>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
           {!focus && hasLeft && (
             <>
-              <aside className="order-3 lg:order-1 lg:shrink-0" style={{ width: undefined }}>
+              <aside className="order-3 lg:order-1 lg:shrink-0">
                 <div className="lg:w-[var(--w)]" style={{ ['--w' as string]: `${leftWidth}px` }}>
                   <Dock dock="left" />
                 </div>
@@ -76,9 +85,7 @@ export default function App() {
               <div className="order-1 lg:order-2"><SideResizer dock="left" /></div>
             </>
           )}
-          <section className="order-1 min-w-0 flex-1 lg:order-3" aria-label="Instrumento">
-            <InstrumentView />
-          </section>
+          <div className="order-1 min-w-0 flex-1 lg:order-3">{!focus && <Dock dock="bottom" />}</div>
           {!focus && hasRight && (
             <>
               <div className="order-4"><SideResizer dock="right" /></div>
@@ -90,10 +97,10 @@ export default function App() {
             </>
           )}
         </div>
-        {!focus && <Dock dock="bottom" />}
       </main>
       <SettingsDialog />
       <ProjectsDialog />
+      <Toaster />
     </div>
   )
 }

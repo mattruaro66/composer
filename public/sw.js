@@ -1,5 +1,5 @@
 /* Composer service worker: offline app shell + runtime cache for instrument samples. */
-const VERSION = 'composer-v2'
+const VERSION = 'composer-v3'
 const SHELL = `${VERSION}-shell`
 const SAMPLES = `${VERSION}-samples`
 const SAMPLE_HOSTS = ['gleitz.github.io', 'smpldsnds.github.io', 'danigb.github.io']

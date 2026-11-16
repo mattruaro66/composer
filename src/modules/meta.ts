@@ -1,4 +1,5 @@
 export type ModuleId =
+  | 'sound'
   | 'analysis'
   | 'suggestions'
   | 'voicings'
@@ -33,6 +34,7 @@ export interface ModuleMeta {
 }
 
 export const MODULES: ModuleMeta[] = [
+  { id: 'sound', name: 'Som', description: 'Timbre, sustain, fade, abafar, equalização e efeitos (drive, chorus, delay, reverb)', defaultDock: 'right' },
   {
     id: 'analysis',
     name: 'Análise',
@@ -103,6 +105,7 @@ export interface WorkspacePreset {
 export const BUILTIN_PRESETS: WorkspacePreset[] = [
   { id: 'minimal', name: 'Mínimo', modules: [], builtIn: true },
   { id: 'composer', name: 'Compositor', modules: ['suggestions', 'timeline', 'structure', 'analysis'], builtIn: true },
+  { id: 'player', name: 'Tocar', modules: ['sound', 'analysis', 'voicings'], builtIn: true },
   { id: 'score', name: 'Partitura', modules: ['notation'], builtIn: true },
   { id: 'didactic', name: 'Didático', modules: MODULES.map((m) => m.id), builtIn: true },
 ]

@@ -13,7 +13,7 @@ let engineInstance: AudioEngine | null = null
 
 /**
  * Create/resume the AudioContext synchronously inside a user gesture (autoplay policy),
- * then lazy-load Tone.js + smplr.
+ * then lazy-load Tone.js and the sound engine.
  */
 export function unlockAudio(): void {
   if (typeof window === 'undefined') return
@@ -62,6 +62,13 @@ export const audio = {
   playChord: (midi: number[], strings?: (number | null)[], opts: StrumOptions = {}) =>
     withEngine((e) => e.strum(midi.map((m, i) => ({ midi: m, stringIndex: strings?.[i] ?? null })), { direction: 'down', ...opts })),
   stopAll: () => withEngine((e) => e.stopAll()),
+  /** Mute all strings using the user's fade time ("abafar"). */
+  damp: () => withEngine((e) => e.dampAll()),
+  /** Instant kill of every note. */
+  kill: () => withEngine((e) => e.stopAll(undefined, 0.012)),
+  releaseString: (stringIndex: number | null, midi?: number) => {
+    if (engineInstance) engineInstance.releaseString(stringIndex, midi)
+  },
 }
 
 /** Transport controls (lazy: Tone.js loads on first use). */

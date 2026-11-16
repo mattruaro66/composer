@@ -4,6 +4,7 @@ import { useSettings } from '../store/settings'
 import { useCurrentKey } from '../store/song'
 import { useUi } from '../store/ui'
 import { useFormat } from './hooks'
+import { audio } from '../audio'
 
 const WHITE = [0, 2, 4, 5, 7, 9, 11, 12]
 const BLACK: [number, number][] = [
@@ -18,7 +19,7 @@ const WH = 180
 const BW = 32
 const BH = 112
 
-export function PianoOctave({ onPlay }: { onPlay?: (midi: number) => void }) {
+export function PianoOctave({ onPlay, onRelease }: { onPlay?: (midi: number) => void; onRelease?: (midi: number) => void }) {
   const octave = useInstrument((s) => s.pianoOctave)
   const setOctave = useInstrument((s) => s.setPianoOctave)
   const keys = useInstrument((s) => s.pianoKeys)
@@ -34,6 +35,7 @@ export function PianoOctave({ onPlay }: { onPlay?: (midi: number) => void }) {
 
   const click = (midi: number) => {
     if (!keys.includes(midi)) onPlay?.(midi)
+    else audio.releaseString(null, midi)
     toggleKey(midi)
   }
   const isGhost = (midi: number) => ghosts.some((g) => g.stringIndex === null && g.fret === midi)
@@ -44,7 +46,7 @@ export function PianoOctave({ onPlay }: { onPlay?: (midi: number) => void }) {
     const pc = midi % 12
     const fill = selected ? (pc === tonic ? '#f59e0b' : '#38bdf8') : black ? '#171717' : '#fafafa'
     return (
-      <g key={midi} onClick={() => click(midi)} className="cursor-pointer" data-testid={`key-${midi}`} role="button" aria-pressed={selected} aria-label={`Tecla ${midi}`}>
+      <g key={midi} onPointerDown={(e) => (e.preventDefault(), click(midi))} onPointerUp={() => onRelease?.(midi)} className="cursor-pointer" data-testid={`key-${midi}`} role="button" aria-pressed={selected} aria-label={`Tecla ${midi}`}>
         <rect x={x} y={0} width={black ? BW : WW} height={black ? BH : WH} rx={4} fill={fill} stroke="#404040" />
         {showScale && !selected && scale.has(pc) && (
           <circle cx={x + (black ? BW : WW) / 2} cy={(black ? BH : WH) - 16} r={pc === tonic ? 7 : 5} fill={pc === tonic ? '#f59e0b' : '#a3a3a3'} opacity={0.6} />

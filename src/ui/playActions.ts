@@ -1,4 +1,4 @@
-import { audio, engineSync, getEngine } from '../audio'
+import { audio, getEngine } from '../audio'
 import { expandChord, naturalHarmonicOffset } from '../audio/patterns'
 import { INSTRUMENTS } from '../instrument'
 import { fretMidi, toMidi } from '../theory'
@@ -37,14 +37,8 @@ export function playFret(stringIndex: number, fret: number, previousFret: number
     const tech = pm.legato === 'auto' ? (fret > previousFret ? 'hammer' : 'pull') : pm.legato
     technique = tech
     if (tech === 'slide') {
-      // Slide: quick chromatic glide without new attacks, landing on the target.
-      const from = fretMidi(open, previousFret, capo)!
-      const dir = Math.sign(base - from)
-      const e = engineSync()
-      const now = e?.now() ?? 0
-      for (let k = 1; k <= Math.abs(base - from); k++) {
-        audio.playStringNote(stringIndex, from + dir * k, { legato: true, time: e ? now + k * 0.025 : undefined, velocity: k === Math.abs(base - from) ? 0.7 : 0.35 })
-      }
+      // Slide: the ringing string glides to the new pitch without a new attack.
+      audio.playStringNote(stringIndex, base, { legato: true, glide: Math.min(0.25, 0.03 * Math.abs(fret - previousFret)) })
     } else audio.playStringNote(stringIndex, base, { legato: true })
   } else if (pm.mode === 'pick' && pm.pickStyle === 'tremolo') {
     void getEngine().then((e) => {
