@@ -309,7 +309,8 @@ export function harmonyPaths(current: string | null, key: Key, opts: { perIntent
       const a = analyzeChord(symbol, key)
       if (!a) continue
       const parts = [spec.why]
-      if (a.kind !== 'diatonic') parts.push(KIND_LABELS[a.kind].toLowerCase())
+      const kindLabel = KIND_LABELS[a.kind].toLowerCase()
+      if (a.kind !== 'diatonic' && !spec.why.toLowerCase().includes(kindLabel.split(' ')[0]!)) parts.push(kindLabel)
       if (current) {
         const vl = voiceLeading(current, symbol)
         if (vl) parts.push(vl)
