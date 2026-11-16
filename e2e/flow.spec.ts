@@ -309,6 +309,9 @@ test('ouvir: envia um áudio, transcreve para a tablatura e sugere continuação
   await page.getByTestId('listen-import').click()
   await expect(page.getByTestId('listen-imported')).toBeVisible()
   await expect(page.getByTestId('panel-notation')).toBeVisible()
+  // The imported melody shows up on the instrument, numbered in order.
+  await expect(page.getByTestId('progression-strip')).toContainText('Melodia')
+  await expect(page.getByTestId('fretboard').getByTestId('progression-mark').first()).toBeVisible()
   await expect(page.getByTestId('listen-continue')).toBeVisible()
 
   // The chords example is recognized chord by chord.
@@ -317,6 +320,13 @@ test('ouvir: envia um áudio, transcreve para a tablatura e sugere continuação
   await expect(page.getByTestId('listen-chords')).toContainText('C', { timeout: 20_000 })
   await expect(page.getByTestId('listen-chords').locator('button')).toHaveCount(8)
   await expect(page.getByTestId('listen-key')).toContainText('C maior')
+  await page.getByTestId('listen-import').click()
+  await expect(page.getByTestId('strip-chord-0')).toHaveText('C')
+  await page.getByTestId('strip-chord-2').click()
+  await expect(page.getByTestId('strip-chord-2')).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByTestId('fretboard').getByTestId('progression-mark')).not.toHaveCount(0)
+  await page.getByTestId('strip-show').uncheck()
+  await expect(page.getByTestId('fretboard').getByTestId('progression-mark')).toHaveCount(0)
   expect(errors).toEqual([])
 })
 

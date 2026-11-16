@@ -323,6 +323,8 @@ function Result({ result, showContinue }: { result: Transcription; showContinue:
       layout.setEnabled('notation', true)
       layout.setMinimized('notation', false)
     }
+    // Show the imported progression on the instrument from its first chord.
+    useUi.getState().set({ progressionIndex: 0 })
     useListen.getState().set({ importedTo: id })
   }
 

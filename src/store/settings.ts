@@ -14,6 +14,8 @@ export interface SettingsState {
   chordStyle: ChordStyle
   fretLabel: FretLabel
   showScale: boolean
+  /** Show the section's progression (chord shape + melody notes) on the instrument. */
+  showProgression: boolean
   leftHanded: boolean
   ghostIntensity: number
   changeWarning: boolean
@@ -51,6 +53,7 @@ export const useSettings = create<SettingsState>()(
       chordStyle: 'br',
       fretLabel: 'name',
       showScale: false,
+      showProgression: true,
       leftHanded: false,
       ghostIntensity: 0.6,
       changeWarning: true,

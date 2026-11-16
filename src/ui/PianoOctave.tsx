@@ -22,6 +22,7 @@ export function PianoOctave({ onPlay, onRelease }: { onPlay?: (midi: number) => 
   const showScale = useSettings((s) => s.showScale)
   const ghostIntensity = useSettings((s) => s.ghostIntensity)
   const ghosts = useUi((s) => s.ghosts)
+  const overlay = useUi((s) => s.overlay)
   const key = useCurrentKey()
   const fmt = useFormat()
   const ringing = useRinging()
@@ -89,6 +90,22 @@ export function PianoOctave({ onPlay, onRelease }: { onPlay?: (midi: number) => 
             )}
           </g>
         )}
+        {!selected && overlay?.chord.some((c) => c.fret === midi) && (
+          <rect x={x + 3} y={h - (black ? 14 : 22)} width={w - 7} height={black ? 8 : 10} rx={3} fill="#2dd4bf" opacity={0.85} pointerEvents="none" data-testid="progression-mark" />
+        )}
+        {(() => {
+          const labels = overlay?.melody.filter((m) => m.fret === midi).map((m) => m.label) ?? []
+          if (!labels.length) return null
+          const t = labels.length > 2 ? `${labels[0]}…` : labels.join(',')
+          return (
+            <g pointerEvents="none" data-testid="progression-mark">
+              <circle cx={x + w / 2} cy={h * 0.42} r={Math.max(7, Math.min(10, WW * 0.3))} fill="#f5a524" stroke="#1a1203" />
+              <text x={x + w / 2} y={h * 0.42 + 3.2} textAnchor="middle" fontSize={t.length > 2 ? 7.5 : 9} fontWeight={800} fill="#1a1203">
+                {t}
+              </text>
+            </g>
+          )
+        })()}
         {!black && (pc === 0 || WW >= 40) && (
           <text x={x + w / 2} y={h - 5} textAnchor="middle" fontSize={WW >= 40 ? 11 : 9} fontWeight={pc === 0 ? 700 : 400} fill={selected ? '#111' : '#6b7280'}>
             {fmt.note(fromMidi(midi).replace(/-?\d+$/, ''))}

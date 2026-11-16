@@ -146,3 +146,9 @@ Todas as 9 fases concluídas + rodada de som/UX. 156 testes unitários + 16 test
     continuação (próximos acordes, próxima nota, Claude)
 - Limites conhecidos: melodia é monofônica; acordes + melodia ao mesmo tempo é aproximado; microfone pode ser
   bloqueado dentro do claude.ai (usar "Enviar áudio")
+
+## Rodada 7
+- Progressão no instrumento: faixa acima do braço/piano com os acordes da seção (ou os compassos, quando só há
+  melodia); o acorde escolhido aparece no braço (desenho em verde-água, com cordas soltas) e as notas da melodia
+  daquele trecho em âmbar, numeradas na ordem; segue o transporte ao tocar; "Usar no braço" e "mostrar no
+  instrumento" (liga/desliga). Ao importar uma transcrição, a faixa começa no primeiro acorde/compasso

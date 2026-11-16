@@ -39,6 +39,9 @@ export function Fretboard({ onPlay, onRelease, isFretDisabled }: FretboardProps)
   const ghostIntensity = useSettings((s) => s.ghostIntensity)
   const warnIntensity = useSettings((s) => s.changeWarningIntensity)
   const ghosts = useUi((s) => s.ghosts)
+  const overlay = useUi((s) => s.overlay)
+  const onChord = (si: number, rel: number) => !!overlay?.chord.some((c) => c.stringIndex === si && c.fret === rel)
+  const melodyAt = (si: number, rel: number) => overlay?.melody.filter((m) => m.stringIndex === si && m.fret === rel).map((m) => m.label) ?? []
   const key = useCurrentKey()
   const fmt = useFormat()
   const { chord } = useDetection()
@@ -235,6 +238,8 @@ export function Fretboard({ onPlay, onRelease, isFretDisabled }: FretboardProps)
             const midi = openMidi + physical
             const selected = !soloMode && state[si] === rel
             const ghost = ghostFor(si, rel)
+            const chordHere = onChord(si, rel)
+            const melodyHere = melodyAt(si, rel)
             const disabled = isFretDisabled?.(rel) ?? false
             const pc = midi % 12
             const inScale = scaleChromas.has(pc)
@@ -294,7 +299,10 @@ export function Fretboard({ onPlay, onRelease, isFretDisabled }: FretboardProps)
                     <circle cx={cx} cy={y} r={12} fill="url(#dot-tone)" style={{ animation: 'ring-fade 0.6s ease-out forwards' }} />
                   </g>
                 )}
-                {!soloMode && showScale && !selected && !ghost && inScale && (
+                {!selected && (chordHere || melodyHere.length > 0) && (
+                  <ProgressionMark cx={cx} y={y} chord={chordHere} melody={melodyHere} label={fmt.note(fromMidi(midi).replace(/-?\d+$/, ''))} />
+                )}
+                {!soloMode && showScale && !selected && !ghost && !chordHere && melodyHere.length === 0 && inScale && (
                   <circle cx={cx} cy={y} r={isTonic ? 7 : 5} fill={isTonic ? 'var(--accent)' : '#d8dde5'} opacity={isTonic ? 0.6 : 0.25} pointerEvents="none" />
                 )}
                 {ghost && !selected && (
@@ -320,6 +328,12 @@ export function Fretboard({ onPlay, onRelease, isFretDisabled }: FretboardProps)
             )
           })
         })}
+        {/* Progression on open strings */}
+        {tuning.map((_, si) =>
+          state[si] !== 0 && (onChord(si, 0) || melodyAt(si, 0).length > 0) ? (
+            <ProgressionMark key={`pm0-${si}`} cx={mirror(NUT_X - 24)} y={yOf(si)} chord={onChord(si, 0)} melody={melodyAt(si, 0)} label="0" small />
+          ) : null,
+        )}
         {/* Open-string ghost dots */}
         {ghosts
           .filter((g) => g.fret === 0 && g.stringIndex !== null && state[g.stringIndex] !== 0)
@@ -328,6 +342,34 @@ export function Fretboard({ onPlay, onRelease, isFretDisabled }: FretboardProps)
           ))}
       </svg>
     </div>
+  )
+}
+
+/** Chord shape (teal ring with the note) and melody order (amber numbered badge) from the progression strip. */
+function ProgressionMark({ cx, y, chord, melody, label, small }: { cx: number; y: number; chord: boolean; melody: string[]; label: string; small?: boolean }) {
+  const r = small ? 9 : 12
+  const text = melody.length > 2 ? `${melody[0]}…` : melody.join(',')
+  return (
+    <g pointerEvents="none" data-testid="progression-mark">
+      {chord && (
+        <>
+          <circle cx={cx} cy={y} r={r} fill="rgba(45,212,191,0.24)" stroke="#2dd4bf" strokeWidth={2} />
+          {!small && (
+            <text x={cx} y={y + 3.5} fontSize={9.5} fontWeight={600} textAnchor="middle" fill="#ccfbf1">
+              {label}
+            </text>
+          )}
+        </>
+      )}
+      {melody.length > 0 && (
+        <g>
+          <circle cx={chord ? cx + r * 0.8 : cx} cy={chord ? y - r * 0.75 : y} r={chord ? 7.5 : r - 1.5} fill="#f5a524" stroke="#1a1203" strokeWidth={1} />
+          <text x={chord ? cx + r * 0.8 : cx} y={(chord ? y - r * 0.75 : y) + 3.2} fontSize={text.length > 2 ? 7.5 : 9} fontWeight={800} textAnchor="middle" fill="#1a1203">
+            {text}
+          </text>
+        </g>
+      )}
+    </g>
   )
 }
 

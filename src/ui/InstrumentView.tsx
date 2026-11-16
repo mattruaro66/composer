@@ -16,6 +16,7 @@ import { playChordNow, playFret, playSoloNote } from './playActions'
 import { toast } from './toast'
 import { useSolo } from '../store/solo'
 import { SoloBar } from './SoloBar'
+import { ProgressionStrip } from './ProgressionStrip'
 
 export function InstrumentView() {
   const instrumentId = useInstrument((s) => s.instrumentId)
@@ -83,6 +84,7 @@ export function InstrumentView() {
           {soloMode ? 'Cada toque é uma nota; a escala aparece no braço.' : 'Monte acordes no braço (uma casa por corda) e adicione à progressão.'}
         </span>
       </div>
+      <ProgressionStrip />
       {def.kind === 'piano' ? (
         <PianoOctave
           onPlay={(m) => {

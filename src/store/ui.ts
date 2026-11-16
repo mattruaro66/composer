@@ -8,8 +8,20 @@ export interface GhostDot {
   kind: 'missing' | 'next' | 'voicing'
 }
 
+/** The progression shown on the instrument: the chord's shape and its melody notes in order. */
+export interface InstrumentOverlay {
+  /** Chord shape: strings use fret (relative to the capo); piano uses MIDI with stringIndex null. */
+  chord: { stringIndex: number | null; fret: number }[]
+  /** Melody notes under this chord, numbered in playing order. */
+  melody: { stringIndex: number | null; fret: number; label: string }[]
+}
+
 interface UiState {
   ghosts: GhostDot[]
+  overlay: InstrumentOverlay | null
+  /** Chord of the active section shown on the instrument when the transport is stopped. */
+  progressionIndex: number
+  setOverlay: (overlay: InstrumentOverlay | null) => void
   ghostSource: string | null
   tuningOpen: boolean
   settingsOpen: boolean
@@ -24,11 +36,14 @@ interface UiState {
   aiDraft: string | null
   setGhosts: (ghosts: GhostDot[], source?: string | null) => void
   clearGhosts: (source?: string) => void
-  set: (patch: Partial<Pick<UiState, 'tuningOpen' | 'settingsOpen' | 'projectsOpen' | 'playingChordIndex' | 'focusChord' | 'aiOpen' | 'aiDraft' | 'guideOpen'>>) => void
+  set: (patch: Partial<Pick<UiState, 'tuningOpen' | 'settingsOpen' | 'projectsOpen' | 'playingChordIndex' | 'focusChord' | 'aiOpen' | 'aiDraft' | 'guideOpen' | 'progressionIndex'>>) => void
 }
 
 export const useUi = create<UiState>()((set) => ({
   ghosts: [],
+  overlay: null,
+  progressionIndex: 0,
+  setOverlay: (overlay) => set({ overlay }),
   ghostSource: null,
   tuningOpen: false,
   settingsOpen: false,

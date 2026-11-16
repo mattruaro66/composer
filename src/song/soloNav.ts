@@ -117,3 +117,21 @@ export function nextChordAtTick(song: Song, section: Section, tick: number): str
   const i = chordIndexAtTick(song, section, tick)
   return section.chords[(i + 1) % n]?.symbol ?? null
 }
+
+/** Start/end ticks of each chord of a section (one pass of the progression). */
+export function chordTickSpans(song: Song, section: Section): { start: number; end: number }[] {
+  const layout = layoutSection(song, section)
+  const startTick: number[] = []
+  let pulseTick = 0
+  let pulse = 0
+  for (const m of layout.measures)
+    for (let k = 0; k < m.pulses; k++) {
+      startTick[pulse++] = pulseTick
+      pulseTick += ticksPerPulse(m.meter.den)
+    }
+  startTick[pulse] = pulseTick
+  return section.chords.map((c, i) => {
+    const a = layout.chordStarts[i] ?? 0
+    return { start: startTick[a] ?? 0, end: startTick[a + Math.max(1, c.beats)] ?? pulseTick }
+  })
+}
